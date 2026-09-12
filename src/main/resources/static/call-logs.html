@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Call Logs</title>
+
+    <!-- FONT AWESOME -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- CALL LOGS CSS -->
+
+    <link
+        rel="stylesheet"
+        href="/css/call-logs.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="call-container">
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="call-header">
+
+
+        <!-- BACK BUTTON -->
+
+        <button
+            type="button"
+            class="back-button"
+            onclick="goBack()"
+            title="Back to Chat"
+        >
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+        </button>
+
+
+        <!-- TITLE -->
+
+        <div class="header-title">
+
+            <h2>
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                Call Logs
+
+            </h2>
+
+            <p>
+
+                Your recent call history
+
+            </p>
+
+        </div>
+
+
+        <!-- REFRESH -->
+
+        <button
+            type="button"
+            class="refresh-button"
+            onclick="loadCallLogs()"
+            title="Refresh Call Logs"
+        >
+
+            <i class="fa-solid fa-rotate"></i>
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         CALL SUMMARY
+    ====================================================== -->
+
+    <div class="call-summary">
+
+
+        <!-- TOTAL -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-phone"></i>
+
+            </div>
+
+            <div class="summary-info">
+
+                <span>
+
+                    Total Calls
+
+                </span>
+
+                <strong
+                    id="totalCalls"
+                >
+
+                    0
+
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- INCOMING -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon incoming">
+
+                <i class="fa-solid fa-phone-volume"></i>
+
+            </div>
+
+            <div class="summary-info">
+
+                <span>
+
+                    Incoming
+
+                </span>
+
+                <strong
+                    id="incomingCalls"
+                >
+
+                    0
+
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- OUTGOING -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon outgoing">
+
+                <i class="fa-solid fa-phone"></i>
+
+            </div>
+
+            <div class="summary-info">
+
+                <span>
+
+                    Outgoing
+
+                </span>
+
+                <strong
+                    id="outgoingCalls"
+                >
+
+                    0
+
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- MISSED -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon missed">
+
+                <i class="fa-solid fa-phone-slash"></i>
+
+            </div>
+
+            <div class="summary-info">
+
+                <span>
+
+                    Missed
+
+                </span>
+
+                <strong
+                    id="missedCalls"
+                >
+
+                    0
+
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         LOADING
+    ====================================================== -->
+
+    <div
+        id="loading"
+        class="loading"
+    >
+
+        <i class="fa-solid fa-spinner"></i>
+
+        Loading call logs...
+
+    </div>
+
+
+
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
+
+    <div
+        id="emptyState"
+        class="empty-state"
+        style="display: none;"
+    >
+
+
+        <div class="empty-icon">
+
+            <i class="fa-solid fa-phone-slash"></i>
+
+        </div>
+
+
+        <h3>
+
+            No Call History
+
+        </h3>
+
+
+        <p>
+
+            Your voice and video call history will appear here.
+
+        </p>
+
+
+        <button
+            type="button"
+            class="back-chat-button"
+            onclick="goBack()"
+        >
+
+            <i class="fa-solid fa-comments"></i>
+
+            Go to Chat
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         CALL LIST
+    ====================================================== -->
+
+    <div
+        id="callList"
+        class="call-list"
+    >
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script
+    src="/js/call-logs.js"
+></script>
+
+
+</body>
+
+</html>
