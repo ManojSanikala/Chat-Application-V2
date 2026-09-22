@@ -14,7 +14,7 @@
 
     >
 
-    <title>Chat Application</title>
+    <title>Connect | Real-Time Messaging</title>
 
     <!-- ================= FONT AWESOME ================= -->
 
@@ -1426,6 +1426,9 @@
 
     </style>
 
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/index.css">
+
 </head>
 
 <body>
@@ -1638,13 +1641,18 @@
 
         <div class="users-header">
 
-            <h2 class="users-title">
+            <div class="users-brand">
 
-                <i class="fa-solid fa-comments"></i>
+                <div class="users-brand-mark">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
 
-                Chat
+                <div>
+                    <div class="users-brand-title">Connect</div>
+                    <div class="users-brand-subtitle">Real-time conversations</div>
+                </div>
 
-            </h2>
+            </div>
 
             <button
 
@@ -1730,7 +1738,7 @@
 
             <div id="friendSearchResults"></div>
 
-            <button type="button" id="friendRequestsButton" onclick="loadFriendRequests()" style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;background:#f1f3f5;cursor:pointer;font-weight:600;">
+            <button type="button" id="friendRequestsButton" class="friend-requests-button" onclick="loadFriendRequests()">
 
                 <i class="fa-solid fa-bell"></i> Friend Requests <span id="friendRequestCount"></span>
 
@@ -1772,7 +1780,7 @@
 
     ================================================== -->
 
-    <div class="chat-panel">
+    <div class="chat-panel no-user-selected">
 
         <!-- =================================================
 
@@ -2158,21 +2166,223 @@
 
         <div id="chat">
 
-            <div class="empty-chat">
+            <div class="empty-chat home-screen" id="homeScreen">
 
-                <div>
+                <div class="home-shell">
 
-                    <i
+                    <div class="home-welcome-row">
 
-                        class="fa-regular fa-comments">
+                        <div>
+                            <div class="home-eyebrow">
+                                <span class="home-live-dot"></span>
+                                LIVE MESSAGING
+                            </div>
 
-                    </i>
+                            <h1 class="home-title">
+                                Welcome to <span>Connect</span>
+                            </h1>
 
-                    <div>
+                            <p class="home-subtitle">
+                                Chat, share files, send voice messages and connect with people in real time.
+                            </p>
+                        </div>
 
-                        Select a user to start chatting
+                        <div class="home-status-card">
+                            <div class="home-status-icon">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div>
+                                <strong>Real-time</strong>
+                                <span>Connection ready</span>
+                            </div>
+                        </div>
 
                     </div>
+
+                    <div class="home-carousel" id="homeCarousel">
+
+                        <article class="home-slide active" data-slide="0">
+
+                            <div class="home-slide-copy">
+                                <div class="home-slide-kicker">CONNECT INSTANTLY</div>
+                                <h2>Find your people and start the conversation.</h2>
+                                <p>
+                                    Search for a username from the left panel and send a friend request in seconds.
+                                </p>
+                                <button type="button" class="home-primary-cta" data-home-action="find-friends">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    Find friends
+                                </button>
+                            </div>
+
+                            <div class="home-slide-visual">
+                                <img
+                                    src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=85"
+                                    alt="Friends talking together"
+                                    loading="lazy"
+                                >
+                                <div class="home-image-glow"></div>
+                                <div class="home-floating-card">
+                                    <i class="fa-solid fa-users"></i>
+                                    <span>Friends online</span>
+                                    <strong>Connect &amp; chat</strong>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <article class="home-slide" data-slide="1">
+
+                            <div class="home-slide-copy">
+                                <div class="home-slide-kicker">CHAT + SHARE</div>
+                                <h2>Everything for a modern conversation.</h2>
+                                <p>
+                                    Send text, images, documents, files, replies, reactions and voice messages from one place.
+                                </p>
+                                <button type="button" class="home-primary-cta" data-home-action="profile">
+                                    <i class="fa-solid fa-user-gear"></i>
+                                    Open profile
+                                </button>
+                            </div>
+
+                            <div class="home-slide-visual">
+                                <img
+                                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85"
+                                    alt="People collaborating on a laptop"
+                                    loading="lazy"
+                                >
+                                <div class="home-image-glow"></div>
+                                <div class="home-floating-card">
+                                    <i class="fa-solid fa-paperclip"></i>
+                                    <span>Share anything</span>
+                                    <strong>Messages + media</strong>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <article class="home-slide" data-slide="2">
+
+                            <div class="home-slide-copy">
+                                <div class="home-slide-kicker">VOICE + VIDEO</div>
+                                <h2>Call when texting isn't enough.</h2>
+                                <p>
+                                    Use voice or video calling with live call controls and a personal call history.
+                                </p>
+                                <button type="button" class="home-primary-cta" data-home-action="calls">
+                                    <i class="fa-solid fa-phone"></i>
+                                    View call logs
+                                </button>
+                            </div>
+
+                            <div class="home-slide-visual">
+                                <img
+                                    src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&amp;fit=crop&amp;w=1200&amp;q=85"
+                                    alt="Team video conversation"
+                                    loading="lazy"
+                                >
+                                <div class="home-image-glow"></div>
+                                <div class="home-floating-card">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span>Live calls</span>
+                                    <strong>Voice + video</strong>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <div class="home-dots" role="tablist" aria-label="Homepage banners">
+                            <button type="button" class="active" data-home-dot="0" aria-label="Banner 1"></button>
+                            <button type="button" data-home-dot="1" aria-label="Banner 2"></button>
+                            <button type="button" data-home-dot="2" aria-label="Banner 3"></button>
+                        </div>
+
+                    </div>
+
+                    <section class="home-quick-links">
+
+                        <button type="button" class="home-link-card" data-home-action="find-friends">
+                            <span class="home-link-icon blue"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <span>
+                                <strong>Find friends</strong>
+                                <small>Search by username</small>
+                            </span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <button type="button" class="home-link-card" data-home-action="requests">
+                            <span class="home-link-icon purple"><i class="fa-solid fa-user-group"></i></span>
+                            <span>
+                                <strong>Friend requests</strong>
+                                <small>Review pending requests</small>
+                            </span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <button type="button" class="home-link-card" data-home-action="calls">
+                            <span class="home-link-icon cyan"><i class="fa-solid fa-phone-volume"></i></span>
+                            <span>
+                                <strong>Call history</strong>
+                                <small>Review recent calls</small>
+                            </span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <button type="button" class="home-link-card" data-home-action="profile">
+                            <span class="home-link-icon amber"><i class="fa-solid fa-user-gear"></i></span>
+                            <span>
+                                <strong>My profile</strong>
+                                <small>Update your details</small>
+                            </span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                    </section>
+
+                    <section class="home-feature-strip" id="homeFeatures">
+
+                        <div class="home-feature">
+                            <span class="home-feature-icon"><i class="fa-solid fa-lock"></i></span>
+                            <div>
+                                <strong>Secure sessions</strong>
+                                <small>JWT-protected account access</small>
+                            </div>
+                        </div>
+
+                        <div class="home-feature">
+                            <span class="home-feature-icon"><i class="fa-solid fa-bolt"></i></span>
+                            <div>
+                                <strong>Live updates</strong>
+                                <small>WebSocket-powered events</small>
+                            </div>
+                        </div>
+
+                        <div class="home-feature">
+                            <span class="home-feature-icon"><i class="fa-solid fa-photo-film"></i></span>
+                            <div>
+                                <strong>Rich sharing</strong>
+                                <small>Images, files and more</small>
+                            </div>
+                        </div>
+
+                        <div class="home-feature">
+                            <span class="home-feature-icon"><i class="fa-solid fa-headset"></i></span>
+                            <div>
+                                <strong>Calls</strong>
+                                <small>Voice and video calling</small>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <footer class="home-footer">
+                        <span>© 2026 Connect. All rights reserved.</span>
+                        <span class="home-footer-links">
+                            <button type="button" data-home-scroll="homeFeatures">Features</button>
+                            <button type="button" data-home-scroll="homeFeatures">About</button>
+                            <button type="button" data-home-action="requests">Help</button>
+                        </span>
+                    </footer>
 
                 </div>
 
@@ -2180,7 +2390,7 @@
 
         </div>
 
-        <!-- =================================================
+<!-- =================================================
 
              REPLY PREVIEW
 
@@ -2490,7 +2700,7 @@
 
                 id="imageInput"
 
-                accept="image/"*
+                accept="image/*"
 
                 style="display:none;"
 
@@ -2858,7 +3068,7 @@
 
             <label>Profile Picture</label>
 
-            <input id="profilePictureFile" type="file" accept="image/" onchange="previewSelectedProfilePicture()"*>
+            <input id="profilePictureFile" type="file" accept="image/*" onchange="previewSelectedProfilePicture()">
 
             <img id="profilePicturePreview" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;align-self:center;">
 
@@ -3385,6 +3595,7 @@
 <script src="/js/call.js"></script>
 
 <script src="/js/call-logs.js"></script>
+<script src="/js/home-ui.js"></script>
 
 <!-- =====================================================
 

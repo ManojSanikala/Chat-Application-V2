@@ -33,13 +33,13 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
 
         return new BCryptPasswordEncoder();
-
     }
 
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+            HttpSecurity http
+    ) throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
@@ -49,40 +49,41 @@ public class SecurityConfig {
             .httpBasic(httpBasic -> httpBasic.disable())
 
             .authenticationProvider(
-                authenticationProvider()
+                    authenticationProvider()
             )
 
             .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter.class
             )
 
             .authorizeHttpRequests(auth -> auth
 
                 .requestMatchers(
-                    "/",
-                    "/login.html",
-                    "/index.html",
-                    "/error",
+                        "/",
+                        "/login.html",
+                        "/index.html",
+                        "/error",
 
-                    "/app.js",
-                    "/websocket.js",
-                    "/users.js",
-                    "/messages.js",
+                        "/app.js",
+                        "/websocket.js",
+                        "/users.js",
+                        "/messages.js",
 
-                    "/js/**",
-                    "/css/**",
-                    "/images/**",
-                    "/favicon.ico",
+                        "/js/**",
+                        "/css/**",
+                        "/images/**",
+                        "/favicon.ico",
 
-                    // Message attachments are rendered by standard browser URLs.
-                    // Upload endpoints remain protected by the authenticated default rule.
-                    "/uploads/images/**",
-                    "/uploads/files/**",
-                    "/auth/login",
-                    "/auth/register",
+                        "/uploads/images/**",
+                        "/uploads/files/**",
 
-                    "/chat/**"
+                        "/admin.html",
+
+                        "/auth/login",
+                        "/auth/register",
+
+                        "/chat/**"
                 )
                 .permitAll()
 
@@ -94,38 +95,27 @@ public class SecurityConfig {
     }
 
 
-    /* =============================================
-       Authentication Provider
-    ============================================= */
-
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
         DaoAuthenticationProvider provider =
-            new DaoAuthenticationProvider(
-                customUserDetailsService
-            );
+                new DaoAuthenticationProvider(
+                        customUserDetailsService
+                );
 
         provider.setPasswordEncoder(
-            passwordEncoder()
+                passwordEncoder()
         );
 
         return provider;
-
     }
 
-
-    /* =============================================
-       Authentication Manager
-    ============================================= */
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration)
-            throws Exception {
+            AuthenticationConfiguration configuration
+    ) throws Exception {
 
         return configuration.getAuthenticationManager();
-
     }
-
 }

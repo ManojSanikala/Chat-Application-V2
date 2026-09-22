@@ -55,7 +55,9 @@ public class AdminDashboardResponse {
         return totalFriendRequests;
     }
 
-    public void setTotalFriendRequests(long totalFriendRequests) {
+    public void setTotalFriendRequests(
+            long totalFriendRequests
+    ) {
         this.totalFriendRequests = totalFriendRequests;
     }
 
@@ -67,5 +69,4 @@ public class AdminDashboardResponse {
     public void setTotalCalls(long totalCalls) {
         this.totalCalls = totalCalls;
     }
-
 }

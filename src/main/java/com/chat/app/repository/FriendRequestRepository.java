@@ -15,25 +15,11 @@ import com.chat.app.model.FriendRequest;
 public interface FriendRequestRepository
         extends JpaRepository<FriendRequest, Long> {
 
-
-    /*
-     * =============================================
-     * CHECK REQUEST BETWEEN TWO USERS
-     * =============================================
-     */
-
     Optional<FriendRequest>
     findBySenderUsernameAndReceiverUsername(
             String sender,
             String receiver
     );
-
-
-    /*
-     * =============================================
-     * GET RECEIVED REQUESTS
-     * =============================================
-     */
 
     List<FriendRequest>
     findByReceiverUsernameAndStatus(
@@ -41,29 +27,11 @@ public interface FriendRequestRepository
             FriendRequestStatus status
     );
 
-
-    /*
-     * =============================================
-     * GET SENT REQUESTS
-     * =============================================
-     */
-
     List<FriendRequest>
     findBySenderUsernameAndStatus(
             String sender,
             FriendRequestStatus status
     );
-
-
-    /*
-     * =============================================
-     * CHECK ACCEPTED FRIENDSHIP
-     *
-     * user1 -> user2
-     * OR
-     * user2 -> user1
-     * =============================================
-     */
 
     Optional<FriendRequest>
     findBySenderUsernameAndReceiverUsernameAndStatus(
@@ -71,7 +39,7 @@ public interface FriendRequestRepository
             String receiver,
             FriendRequestStatus status
     );
-    
+
     List<FriendRequest>
     findByStatusAndSenderUsernameOrStatusAndReceiverUsername(
             FriendRequestStatus status1,
@@ -79,20 +47,42 @@ public interface FriendRequestRepository
             FriendRequestStatus status2,
             String receiverUsername
     );
+
+    // =====================================================
+    // ADMIN USER DELETE
+    // =====================================================
+
+    void deleteBySenderUsernameOrReceiverUsername(
+            String senderUsername,
+            String receiverUsername
+    );
+
+    // =====================================================
+    // GET FRIENDS
+    // =====================================================
+
     @Query("""
-    	    SELECT f
-    	    FROM FriendRequest f
-    	    WHERE
-    	        f.status = com.chat.app.enums.FriendRequestStatus.ACCEPTED
-    	        AND
-    	        (
-    	            f.sender.username = :username
-    	            OR
-    	            f.receiver.username = :username
-    	        )
-    	""")
-    	List<FriendRequest> findAcceptedFriendsByUsername(
-    	        @Param("username")
-    	        String username
-    	);
+        SELECT f
+        FROM FriendRequest f
+        WHERE
+            f.status =
+                com.chat.app.enums.FriendRequestStatus.ACCEPTED
+            AND
+            (
+                f.sender.username = :username
+                OR
+                f.receiver.username = :username
+            )
+    """)
+    List<FriendRequest> findAcceptedFriendsByUsername(
+            @Param("username") String username
+    );
+    @Query("""
+            SELECT f
+            FROM FriendRequest f
+            JOIN FETCH f.sender
+            JOIN FETCH f.receiver
+            ORDER BY f.createdAt DESC
+        """)
+        List<FriendRequest> findAllWithUsers();
 }

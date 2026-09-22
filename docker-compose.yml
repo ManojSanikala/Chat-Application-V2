@@ -1,0 +1,71 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: connect-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_DATABASE: CHAT_APP
+      MYSQL_USER: connect
+      MYSQL_PASSWORD: connect_db_password
+      MYSQL_ROOT_PASSWORD: connect_root_password
+
+    volumes:
+      - connect_mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uconnect",
+          "-pconnect_db_password"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: connect-app
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/CHAT_APP?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: connect
+      DB_PASSWORD: connect_db_password
+
+      DDL_AUTO: update
+      SHOW_SQL: "false"
+      FORMAT_SQL: "false"
+
+      JWT_SECRET: YourLongRandomSecretKeyForConnectApplication2026@SpringBoot
+      JWT_EXPIRATION: "604800000"
+
+      PORT: "8080"
+
+    ports:
+      - "8081:8080"
+
+    volumes:
+      - connect_uploads:/app/uploads
+
+
+volumes:
+
+  connect_mysql_data:
+
+  connect_uploads:

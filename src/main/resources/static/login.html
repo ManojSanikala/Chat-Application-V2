@@ -11,7 +11,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Chat Application</title>
+    <title>Chat Application | Sign In</title>
 
 
     <!-- Font Awesome -->
@@ -387,13 +387,74 @@
 
     </style>
 
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/login.css">
+
 </head>
 
 
 <body>
 
+<div class="auth-page">
 
-<div class="auth-card">
+    <section class="auth-visual">
+
+        <div class="auth-visual-overlay"></div>
+
+        <div class="auth-visual-content">
+
+            <div class="auth-brand">
+                <span class="auth-brand-mark">
+                    <i class="fa-solid fa-comments"></i>
+                </span>
+                <span>Connect</span>
+            </div>
+
+            <div class="auth-visual-kicker">
+                REAL-TIME COMMUNICATION
+            </div>
+
+            <h2>
+                Stay connected.
+                <span>Every moment.</span>
+            </h2>
+
+            <p>
+                A modern space for messages, shared media, voice notes,
+                friend connections and real-time voice &amp; video calls.
+            </p>
+
+            <div class="auth-visual-features">
+
+                <div>
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Live messaging</span>
+                </div>
+
+                <div>
+                    <i class="fa-solid fa-paperclip"></i>
+                    <span>Easy file sharing</span>
+                </div>
+
+                <div>
+                    <i class="fa-solid fa-video"></i>
+                    <span>Voice &amp; video calls</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="auth-visual-image">
+            <img
+                src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&amp;fit=crop&amp;w=1200&amp;q=85"
+                alt="People using technology together"
+            >
+        </div>
+
+    </section>
+
+    <div class="auth-card">
 
 
     <!-- =========================================
@@ -686,6 +747,14 @@
 
     </div>
 
+    <div class="auth-card-trust">
+        <span><i class="fa-solid fa-shield-halved"></i> Secure sign-in</span>
+        <span><i class="fa-solid fa-wand-magic-sparkles"></i> Simple setup</span>
+    </div>
+
+    <footer class="auth-footer">
+        © 2026 Connect. All rights reserved.
+    </footer>
 
 </div>
 
@@ -1028,7 +1097,57 @@ loginForm.addEventListener(
                 "token",
                 token
             );
+            /* =====================================================
+            RESOLVE USER ROLE
+         ===================================================== */
 
+         let currentUser = null;
+
+         try {
+
+             const meResponse =
+                 await fetch(
+                     "/user/me",
+                     {
+                         headers: {
+                             "Authorization":
+                                 "Bearer " + token
+                         }
+                     }
+                 );
+
+
+             if (meResponse.ok) {
+
+                 currentUser =
+                     await meResponse.json();
+             }
+
+         } catch (roleError) {
+
+             console.warn(
+                 "Could not resolve logged-in user role:",
+                 roleError
+             );
+         }
+
+
+         /* =====================================================
+            OPEN ADMIN DASHBOARD OR CHAT
+         ===================================================== */
+
+         if (
+             currentUser &&
+             currentUser.role &&
+             currentUser.role.toUpperCase() === "ADMIN"
+         ) {
+
+             window.location.replace(
+                 "/admin.html"
+             );
+
+             return;
+         }
 
             /* OPEN CHAT */
 

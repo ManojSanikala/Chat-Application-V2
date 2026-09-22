@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,25 +16,41 @@ import jakarta.validation.constraints.NotBlank;
 @Entity
 @Table(name = "users")
 public class User {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	@NotBlank(message = "Username is required")
-	@Column(nullable = false, unique = true, length = 50)
-	private String username;
 
-	@NotBlank(message = "Password is required")
-	private String password;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@NotBlank(message = "Role is required")
-	private String role;
-	@JsonIgnore // "Ignore the messages field when converting User to JSON."
-	@OneToMany(mappedBy = "sender") // The user field inside Message owns this relationship.
-	private List<Message> sentMessages;
-	
-	private boolean online = false;
-	
-	private String lastSeen;
+    @NotBlank(message = "Username is required")
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @NotBlank(message = "Password is required")
+    @JsonIgnore
+    private String password;
+
+    @NotBlank(message = "Role is required")
+    private String role;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sender")
+    private List<Message> sentMessages;
+
+    private boolean online = false;
+
+    private String lastSeen;
+
+    /*
+     * Account status
+     *
+     * true  = ACTIVE
+     * false = DEACTIVATED
+     *
+     * Boolean is used so existing database rows can
+     * be handled safely when the column is first added.
+     */
+    @Column(name = "account_enabled")
+    private Boolean accountEnabled = true;
 
     @Column(length = 100)
     private String displayName;
@@ -48,102 +64,166 @@ public class User {
     @Column(length = 500)
     private String profilePicture;
 
-	public User() {
 
-	}
+    public User() {
 
-	public User(Long id, @NotBlank(message = "Username is required") String username,
-			@NotBlank(message = "Password is required") String password,
-			@NotBlank(message = "Role is required") String role, List<Message> sentMessages, boolean online,String lastSeen) {
-		super();
-		this.id = id;
-		this.username = username;
-		this.password = password;
-		this.role = role;
-		this.sentMessages = sentMessages;
-		this.online = online;
-		this.lastSeen = lastSeen;
-	}
+    }
 
-	public Long getId() {
-		return id;
-	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public User(
+            Long id,
+            @NotBlank(message = "Username is required")
+            String username,
 
-	public String getUsername() {
-		return username;
-	}
+            @NotBlank(message = "Password is required")
+            String password,
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+            @NotBlank(message = "Role is required")
+            String role,
 
-	public String getPassword() {
-		return password;
-	}
+            List<Message> sentMessages,
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+            boolean online,
 
-	public String getRole() {
-		return role;
-	}
+            String lastSeen
+    ) {
+        super();
 
-	public void setRole(String role) {
-		this.role = role;
-	}
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.sentMessages = sentMessages;
+        this.online = online;
+        this.lastSeen = lastSeen;
+    }
 
-	public List<Message> getSentMessages() {
-		return sentMessages;
-	}
 
-	public void setSentMessages(List<Message> sentMessages) {
-		this.sentMessages = sentMessages;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public boolean isOnline() {
-		return online;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setOnline(boolean online) {
-		this.online = online;
-	}
-	
-	public String getLastSeen() {
-	    return lastSeen;
-	}
 
-	public void setLastSeen(String lastSeen) {
-	    this.lastSeen = lastSeen;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	
-	
-	
-	
-	/* ✅ Public Chat (Completed)
-	🔜 Private Chat (1-to-1)
-	🔜 Online / Offline Status
-	🔜 Typing Indicator
-	🔜 Read Receipts
-	🔜 Group Chat
-	🔜 File & Image Sharing
-	🔜 Notifications
-	🔜 Deploy Backend
-	🔜 React Frontend
-	🔜 Deploy Full Stack */
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getBio() { return bio; }
-    public void setBio(String bio) { this.bio = bio; }
-    public String getProfilePicture() { return profilePicture; }
-    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+
+    public List<Message> getSentMessages() {
+        return sentMessages;
+    }
+
+    public void setSentMessages(
+            List<Message> sentMessages
+    ) {
+        this.sentMessages = sentMessages;
+    }
+
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+
+    public String getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(String lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(
+            String displayName
+    ) {
+        this.displayName = displayName;
+    }
+
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(
+            String profilePicture
+    ) {
+        this.profilePicture = profilePicture;
+    }
+ // =====================================================
+ // ACCOUNT STATUS
+ // =====================================================
+
+ public boolean isAccountEnabled() {
+
+     /*
+      * Existing rows may temporarily contain NULL
+      * when the database column is first created.
+      *
+      * Treat NULL as ACTIVE.
+      */
+     return accountEnabled == null ||
+            accountEnabled;
+ }
+
+
+ public void setAccountEnabled(
+         Boolean accountEnabled
+ ) {
+
+     this.accountEnabled =
+             accountEnabled;
+ }
 }

@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <title>
+        Connect | Admin Dashboard
+    </title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="/css/theme.css">
+    <link
+        rel="stylesheet"
+        href="/css/admin.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="admin-app">
+
+    <!-- =================================================
+         SIDEBAR
+    ================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                <i class="fa-solid fa-comments"></i>
+            </div>
+
+            <div>
+                <div class="brand-title">
+                    Connect Admin
+                </div>
+
+                <div class="brand-subtitle">
+                    Management Console
+                </div>
+            </div>
+
+        </div>
+
+
+        <nav class="nav">
+
+            <button
+                class="nav-item active"
+                data-section="dashboard"
+            >
+                Dashboard
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="users"
+            >
+                Users
+            </button>
+
+
+            <button
+    class="nav-item"
+    data-section="messages"
+>
+    Messages
+</button>
+
+
+<button
+    class="nav-item"
+    data-section="calls"
+>
+    Call History
+</button>
+
+
+<button
+    class="nav-item"
+    data-section="friendRequests"
+>
+    Friend Requests
+</button>
+
+
+<button
+    class="nav-item"
+    data-section="blocks"
+>
+    User Blocks
+</button>
+
+        </nav>
+
+        <div class="admin-mode-card">
+            <div class="admin-mode-icon">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <strong>Admin analytics mode</strong>
+                <span>Admin is not a chat user and cannot send friend requests or place calls.</span>
+            </div>
+        </div>
+
+        <div class="admin-live-status">
+            <span></span>
+            Admin session active
+        </div>
+
+        <button
+            id="logoutButton"
+            class="logout-button"
+        >
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+        </button>
+
+    </aside>
+
+
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
+
+    <main class="content">
+
+        <header class="topbar">
+
+            <div>
+
+                <h1 id="pageTitle">
+                    Dashboard
+                </h1>
+
+                <p id="pageSubtitle">
+                    Application overview
+                </p>
+
+            </div>
+
+
+            <div
+                id="adminUserLabel"
+                class="admin-user-label"
+            >
+                Checking...
+            </div>
+
+        </header>
+
+
+        <div
+            id="pageMessage"
+            class="page-message hidden"
+        >
+        </div>
+
+
+        <!-- =================================================
+             DASHBOARD
+        ================================================== -->
+
+        <section
+            id="dashboardSection"
+            class="page-section active-section"
+        >
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span>
+                        Total Users
+                    </span>
+
+                    <strong id="totalUsers">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        Online Users
+                    </span>
+
+                    <strong id="onlineUsers">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        Offline Users
+                    </span>
+
+                    <strong id="offlineUsers">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        Total Messages
+                    </span>
+
+                    <strong id="totalMessages">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        Friend Requests
+                    </span>
+
+                    <strong id="totalFriendRequests">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        Total Calls
+                    </span>
+
+                    <strong id="totalCalls">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Admin Core
+                        </h2>
+
+                        <p>
+                            Manage users, messages and call
+                            history from this console.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="secondary-button"
+                        onclick="loadDashboard()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             USERS
+        ================================================== -->
+
+        <section
+            id="usersSection"
+            class="page-section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            User Management
+                        </h2>
+
+                        <p>
+                            View, search and remove users.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="secondary-button"
+                        onclick="loadUsers()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div class="toolbar">
+
+    <input
+        id="userSearchInput"
+        type="text"
+        placeholder="Search by username"
+    >
+
+
+    <button
+        class="primary-button"
+        onclick="searchUsers()"
+    >
+        Search
+    </button>
+
+
+    <button
+        class="secondary-button"
+        onclick="loadUsers()"
+    >
+        All Users
+    </button>
+
+
+    <button
+        class="primary-button"
+        onclick="toggleCreateUserForm()"
+    >
+        + Create User
+    </button>
+
+</div>
+
+
+<!-- =================================================
+     CREATE USER FORM
+================================================== -->
+
+<div
+    id="createUserForm"
+    class="create-user-form hidden"
+>
+
+    <div class="form-title">
+        Create New User
+    </div>
+
+
+    <div class="form-grid">
+
+        <div class="form-field">
+
+            <label for="createUsername">
+                Username
+            </label>
+
+            <input
+                id="createUsername"
+                type="text"
+                placeholder="Enter username"
+                maxlength="50"
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label for="createPassword">
+                Password
+            </label>
+
+            <input
+                id="createPassword"
+                type="password"
+                placeholder="Enter password"
+                maxlength="100"
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label for="createRole">
+                Role
+            </label>
+
+            <select id="createRole">
+
+                <option value="USER">
+                    USER
+                </option>
+
+                <option value="ADMIN">
+                    ADMIN
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="form-actions">
+
+        <button
+            class="primary-button"
+            onclick="createUser()"
+        >
+            Create User
+        </button>
+
+
+        <button
+            class="secondary-button"
+            onclick="toggleCreateUserForm()"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>
+                                    Username
+                                </th>
+
+                                <th>
+                                    Display Name
+                                </th>
+
+                                <th>
+                                    Email
+                                </th>
+
+                               <th>
+    Role
+</th>
+
+<th>
+    Account
+</th>
+
+<th>
+    Online Status
+</th>
+
+                                <th>
+                                    Last Seen
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="usersTableBody"
+                        >
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MESSAGES
+        ================================================== -->
+
+        <section
+            id="messagesSection"
+            class="page-section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Message Management
+                        </h2>
+
+                        <p>
+                            Review application message records.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="secondary-button"
+                        onclick="loadMessages()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+				<!-- =================================================
+     MESSAGE SEARCH / FILTERS
+================================================== -->
+
+<div class="message-filters">
+
+    <div class="filter-field">
+
+        <label>
+            Search Content
+        </label>
+
+        <input
+            id="messageKeyword"
+            type="text"
+            placeholder="Search message text"
+        >
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Sender
+        </label>
+
+        <input
+            id="messageSender"
+            type="text"
+            placeholder="Username"
+        >
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Receiver
+        </label>
+
+        <input
+            id="messageReceiver"
+            type="text"
+            placeholder="Username"
+        >
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Type
+        </label>
+
+        <select id="messageTypeFilter">
+
+            <option value="">
+                All Types
+            </option>
+
+            <option value="TEXT">
+                TEXT
+            </option>
+
+            <option value="IMAGE">
+                IMAGE
+            </option>
+
+            <option value="DOCUMENT">
+                DOCUMENT
+            </option>
+
+            <option value="FILE">
+                FILE
+            </option>
+
+            <option value="AUDIO">
+                AUDIO
+            </option>
+
+            <option value="CALL">
+                CALL
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Status
+        </label>
+
+        <select id="messageStatusFilter">
+
+            <option value="">
+                All Status
+            </option>
+
+            <option value="SENT">
+                SENT
+            </option>
+
+            <option value="DELIVERED">
+                DELIVERED
+            </option>
+
+            <option value="READ">
+                READ
+            </option>
+
+            <option value="DELETED">
+                DELETED
+            </option>
+
+        </select>
+
+    </div>
+
+</div>
+
+
+<div class="filter-actions">
+
+    <button
+        class="primary-button"
+        onclick="filterMessages()"
+    >
+        Apply Filters
+    </button>
+
+
+    <button
+        class="secondary-button"
+        onclick="clearMessageFilters()"
+    >
+        Clear Filters
+    </button>
+
+</div>
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                              <th>ID</th>
+
+<th>
+    Sender
+</th>
+
+<th>
+    Receiver
+</th>
+
+<th>
+    Type
+</th>
+
+<th>
+    Status
+</th>
+
+<th>
+    Content
+</th>
+
+<th>
+    Timestamp
+</th>
+
+<th>
+    Action
+</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="messagesTableBody"
+                        >
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CALLS
+        ================================================== -->
+
+        <section
+            id="callsSection"
+            class="page-section"
+        >
+
+            <div class="panel">
+            <!-- =================================================
+     CALL SEARCH / FILTERS
+================================================== -->
+
+<div class="call-filters">
+
+    <div class="filter-field">
+
+        <label>
+            Caller / Receiver
+        </label>
+
+        <input
+            id="callUsernameFilter"
+            type="text"
+            placeholder="Search username"
+        >
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Call Type
+        </label>
+
+        <select id="callTypeFilter">
+
+            <option value="">
+                All Types
+            </option>
+
+            <option value="VOICE">
+                VOICE
+            </option>
+
+            <option value="VIDEO">
+                VIDEO
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Direction
+        </label>
+
+        <select id="callDirectionFilter">
+
+            <option value="">
+                All Directions
+            </option>
+
+            <option value="INCOMING">
+                INCOMING
+            </option>
+
+            <option value="OUTGOING">
+                OUTGOING
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label>
+            Status
+        </label>
+
+        <select id="callStatusFilter">
+
+            <option value="">
+                All Status
+            </option>
+
+            <option value="COMPLETED">
+                COMPLETED
+            </option>
+
+            <option value="MISSED">
+                MISSED
+            </option>
+
+            <option value="REJECTED">
+                REJECTED
+            </option>
+
+            <option value="CANCELLED">
+                CANCELLED
+            </option>
+
+        </select>
+
+    </div>
+
+</div>
+
+
+<div class="filter-actions">
+
+    <button
+        class="primary-button"
+        onclick="filterCalls()"
+    >
+        Apply Filters
+    </button>
+
+
+    <button
+        class="secondary-button"
+        onclick="clearCallFilters()"
+    >
+        Clear Filters
+    </button>
+
+</div>
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Call History Management
+                        </h2>
+
+                        <p>
+                            Review voice/video call history
+                            records.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="secondary-button"
+                        onclick="loadCalls()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>
+                                    Caller
+                                </th>
+
+                                <th>
+                                    Receiver
+                                </th>
+
+                                <th>
+                                    Type
+                                </th>
+
+                                <th>
+                                    Direction
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Duration
+                                </th>
+
+                                <th>
+                                    Timestamp
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="callsTableBody"
+                        >
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+        <!-- =================================================
+     FRIEND REQUESTS
+================================================== -->
+
+<section
+    id="friendRequestsSection"
+    class="page-section"
+>
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    Friend Request Management
+                </h2>
+
+                <p>
+                    Review and manage user friend requests.
+                </p>
+
+            </div>
+
+
+            <button
+                class="secondary-button"
+                onclick="loadFriendRequests()"
+            >
+                Refresh
+            </button>
+
+        </div>
+
+
+        <div class="social-filters">
+
+            <div class="filter-field">
+
+                <label>
+                    Username
+                </label>
+
+                <input
+                    id="friendRequestUsername"
+                    type="text"
+                    placeholder="Sender or receiver"
+                >
+
+            </div>
+
+
+            <div class="filter-field">
+
+                <label>
+                    Status
+                </label>
+
+                <select id="friendRequestStatus">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="PENDING">
+                        PENDING
+                    </option>
+
+                    <option value="ACCEPTED">
+                        ACCEPTED
+                    </option>
+
+                    <option value="REJECTED">
+                        REJECTED
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="filter-actions">
+
+            <button
+                class="primary-button"
+                onclick="filterFriendRequests()"
+            >
+                Apply Filters
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="clearFriendRequestFilters()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>
+                            Sender
+                        </th>
+
+                        <th>
+                            Receiver
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Created
+                        </th>
+
+                        <th>
+                            Updated
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="friendRequestsTableBody"
+                >
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+<!-- =================================================
+     USER BLOCKS
+================================================== -->
+
+<section
+    id="blocksSection"
+    class="page-section"
+>
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    User Block Management
+                </h2>
+
+                <p>
+                    Review users blocking other users.
+                </p>
+
+            </div>
+
+
+            <button
+                class="secondary-button"
+                onclick="loadBlocks()"
+            >
+                Refresh
+            </button>
+
+        </div>
+
+
+        <div class="social-filters">
+
+            <div class="filter-field">
+
+                <label>
+                    Username
+                </label>
+
+                <input
+                    id="blockUsernameFilter"
+                    type="text"
+                    placeholder="Blocker or blocked user"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="filter-actions">
+
+            <button
+                class="primary-button"
+                onclick="filterBlocks()"
+            >
+                Search
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="clearBlockFilters()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>
+                            Blocker
+                        </th>
+
+                        <th>
+                            Blocked User
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="blocksTableBody"
+                >
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+        
+
+            <footer class="admin-footer">
+            <span>© 2026 Connect. All rights reserved.</span>
+            <span>Administration &amp; platform management</span>
+        </footer>
+
+</main>
+
+</div>
+
+<!-- =================================================
+     EDIT USER MODAL
+================================================== -->
+
+<div
+    id="editUserModal"
+    class="admin-modal hidden"
+>
+
+    <div class="admin-modal-content">
+
+        <div class="admin-modal-header">
+
+            <h2>
+                Edit User
+            </h2>
+
+            <button
+                class="modal-close"
+                onclick="closeEditUserModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <input
+            id="editUserId"
+            type="hidden"
+        >
+
+
+        <div class="form-field">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                id="editUsername"
+                type="text"
+                readonly
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label>
+                Display Name
+            </label>
+
+            <input
+                id="editDisplayName"
+                type="text"
+                maxlength="100"
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label>
+                Email
+            </label>
+
+            <input
+                id="editEmail"
+                type="email"
+                maxlength="120"
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label>
+                Bio
+            </label>
+
+            <textarea
+                id="editBio"
+                maxlength="500"
+                rows="4"
+            ></textarea>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                class="primary-button"
+                onclick="saveEditedUser()"
+            >
+                Save Changes
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="closeEditUserModal()"
+            >
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =================================================
+     CHANGE ROLE MODAL
+================================================== -->
+
+<div
+    id="changeRoleModal"
+    class="admin-modal hidden"
+>
+
+    <div class="admin-modal-content">
+
+        <div class="admin-modal-header">
+
+            <h2>
+                Change User Role
+            </h2>
+
+            <button
+                class="modal-close"
+                onclick="closeChangeRoleModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <input
+            id="roleUserId"
+            type="hidden"
+        >
+
+
+        <div class="form-field">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                id="roleUsername"
+                type="text"
+                readonly
+            >
+
+        </div>
+
+
+        <div class="form-field">
+
+            <label>
+                Role
+            </label>
+
+            <select id="roleValue">
+
+                <option value="USER">
+                    USER
+                </option>
+
+                <option value="ADMIN">
+                    ADMIN
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                class="primary-button"
+                onclick="saveUserRole()"
+            >
+                Update Role
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="closeChangeRoleModal()"
+            >
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =================================================
+     MESSAGE DETAILS MODAL
+================================================== -->
+
+<div
+    id="messageDetailsModal"
+    class="admin-modal hidden"
+>
+
+    <div class="admin-modal-content">
+
+        <div class="admin-modal-header">
+
+            <h2>
+                Message Details
+            </h2>
+
+
+            <button
+                class="modal-close"
+                onclick="closeMessageDetailsModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="details-grid">
+
+            <div class="details-row">
+
+                <span>
+                    Message ID
+                </span>
+
+                <strong id="detailMessageId">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Sender
+                </span>
+
+                <strong id="detailSender">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Receiver
+                </span>
+
+                <strong id="detailReceiver">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Message Type
+                </span>
+
+                <strong id="detailMessageType">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Status
+                </span>
+
+                <strong id="detailStatus">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Timestamp
+                </span>
+
+                <strong id="detailTimestamp">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    File Name
+                </span>
+
+                <strong id="detailFileName">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Forwarded
+                </span>
+
+                <strong id="detailForwarded">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Edited
+                </span>
+
+                <strong id="detailEdited">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Call Type
+                </span>
+
+                <strong id="detailCallType">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Call Status
+                </span>
+
+                <strong id="detailCallStatus">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Call Duration
+                </span>
+
+                <strong id="detailCallDuration">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-content-box">
+
+            <div class="detail-label">
+                Content
+            </div>
+
+            <div
+                id="detailContent"
+                class="detail-content"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div class="detail-content-box">
+
+            <div class="detail-label">
+                Reply To Content
+            </div>
+
+            <div
+                id="detailReplyContent"
+                class="detail-content"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                class="danger-button"
+                id="detailDeleteButton"
+            >
+                Delete Message
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="closeMessageDetailsModal()"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- =================================================
+     CALL DETAILS MODAL
+================================================== -->
+
+<div
+    id="callDetailsModal"
+    class="admin-modal hidden"
+>
+
+    <div class="admin-modal-content">
+
+        <div class="admin-modal-header">
+
+            <h2>
+                Call Details
+            </h2>
+
+
+            <button
+                class="modal-close"
+                onclick="closeCallDetailsModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="details-grid">
+
+            <div class="details-row">
+
+                <span>
+                    Call ID
+                </span>
+
+                <strong id="detailCallId">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Caller
+                </span>
+
+                <strong id="detailCallCaller">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Receiver
+                </span>
+
+                <strong id="detailCallReceiver">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Call Type
+                </span>
+
+                <strong id="detailCallTypeValue">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Direction
+                </span>
+
+                <strong id="detailCallDirection">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Status
+                </span>
+
+                <strong id="detailCallStatusValue">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Duration
+                </span>
+
+                <strong id="detailCallDurationValue">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="details-row">
+
+                <span>
+                    Timestamp
+                </span>
+
+                <strong id="detailCallTimestamp">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                class="danger-button"
+                id="detailCallDeleteButton"
+            >
+                Delete Call
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="closeCallDetailsModal()"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/js/admin.js"></script>
+
+</body>
+
+</html>

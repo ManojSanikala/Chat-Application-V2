@@ -3,64 +3,93 @@ package com.chat.app.security;
 import java.util.Collection;
 import java.util.List;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.chat.app.model.User;
 
-public class CustomUserDetails implements UserDetails{
+public class CustomUserDetails
+        implements UserDetails {
 
-	private User user;
-	
-	public CustomUserDetails(User user) {
-		
-		this.user = user;
-	}
+    private final User user;
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
-	}
 
-	@Override
-	public @Nullable String getPassword() {
-		// TODO Auto-generated method stub
-		 return user.getPassword();
-	}
+    public CustomUserDetails(
+            User user
+    ) {
 
-	@Override
-	public String getUsername() {
-		// TODO Auto-generated method stub
-		return user.getUsername();
-	}
+        this.user = user;
+    }
 
-	@Override
-	public boolean isAccountNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
 
-	@Override
-	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    // =====================================================
+    // AUTHORITIES
+    // =====================================================
 
-	@Override
-	public boolean isCredentialsNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority>
+    getAuthorities() {
 
-	@Override
-	public boolean isEnabled() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+        return List.of(
+                new SimpleGrantedAuthority(
+                        "ROLE_" +
+                        user.getRole()
+                )
+        );
+    }
 
-	
 
+    // =====================================================
+    // PASSWORD
+    // =====================================================
+
+    @Override
+    public String getPassword() {
+
+        return user.getPassword();
+    }
+
+
+    // =====================================================
+    // USERNAME
+    // =====================================================
+
+    @Override
+    public String getUsername() {
+
+        return user.getUsername();
+    }
+
+
+    // =====================================================
+    // ACCOUNT STATUS
+    // =====================================================
+
+    @Override
+    public boolean isAccountNonExpired() {
+
+        return true;
+    }
+
+
+    @Override
+    public boolean isAccountNonLocked() {
+
+        return true;
+    }
+
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+
+        return true;
+    }
+
+
+    @Override
+    public boolean isEnabled() {
+
+        return user.isAccountEnabled();
+    }
 }

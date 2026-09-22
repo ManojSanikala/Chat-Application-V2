@@ -38,43 +38,93 @@ public class UserService {
     @Transactional
     public UserResponse addUser(UserRequest request) {
 
-        if (userRepository.existsByUsername(request.getUsername())) {
+        String username =
+                request.getUsername().trim();
+
+        String role =
+                request.getRole().trim().toUpperCase();
+
+
+        // =====================================================
+        // VALIDATE USERNAME
+        // =====================================================
+
+        if (username.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "Username cannot be empty"
+            );
+        }
+
+
+        // =====================================================
+        // CHECK DUPLICATE USERNAME
+        // =====================================================
+
+        if (userRepository.existsByUsername(username)) {
 
             throw new IllegalArgumentException(
                     "Username is already in use"
             );
         }
 
+
+        // =====================================================
+        // VALIDATE ROLE
+        // =====================================================
+
+        if (!"USER".equals(role) &&
+                !"ADMIN".equals(role)) {
+
+            throw new IllegalArgumentException(
+                    "Role must be USER or ADMIN"
+            );
+        }
+
+
+        // =====================================================
+        // CREATE USER
+        // =====================================================
+
         User user = new User();
 
+
         user.setUsername(
-                request.getUsername().trim()
+                username
         );
 
+
+        /*
+         * Password is stored as BCrypt hash.
+         */
         user.setPassword(
                 passwordEncoder.encode(
                         request.getPassword()
                 )
         );
 
+
         user.setRole(
-                request.getRole()
+                role
         );
 
+
         /*
-         * New user starts offline.
+         * New account starts offline.
          */
         user.setOnline(false);
 
         user.setLastSeen(null);
 
+
         User savedUser =
                 userRepository.save(user);
 
-        return toUserResponse(savedUser);
+
+        return toUserResponse(
+                savedUser
+        );
     }
-
-
     /*
      * =====================================================
      * GET CURRENT USER / USER PROFILE

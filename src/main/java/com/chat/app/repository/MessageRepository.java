@@ -12,17 +12,13 @@ import com.chat.app.enums.MessageStatus;
 import com.chat.app.model.Message;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message, Long> {
+public interface MessageRepository
+        extends JpaRepository<Message, Long> {
 
-    /*
-     * =====================================================
-     * GET PRIVATE CHAT HISTORY
-     *
-     * Returns:
-     * user1 -> user2
-     * user2 -> user1
-     * =====================================================
-     */
+    // =====================================================
+    // GET PRIVATE CHAT HISTORY
+    // =====================================================
+
     @Query("""
         SELECT m
         FROM Message m
@@ -39,13 +35,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             @Param("user2") String user2
     );
 
-
     Optional<Message>
     findTopBySenderUsernameAndReceiverUsernameOrderByIdDesc(
             String sender,
             String receiver
     );
-
 
     List<Message>
     findBySenderUsernameAndReceiverUsernameAndStatus(
@@ -54,7 +48,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             MessageStatus status
     );
 
-
     long
     countBySenderUsernameAndReceiverUsernameAndStatus(
             String sender,
@@ -62,26 +55,36 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             MessageStatus status
     );
 
-
     List<Message>
     findBySenderUsernameAndReceiverUsernameAndStatusIn(
             String sender,
             String receiver,
             List<MessageStatus> statuses
     );
-    /*
-     * =====================================================
-     * GET CALL HISTORY FOR USER
-     *
-     * User can be:
-     *
-     * Sender
-     * OR
-     * Receiver
-     *
-     * Only CALL messages are returned.
-     * =====================================================
-     */
+
+    // =====================================================
+    // ADMIN QUERIES
+    // =====================================================
+
+    List<Message>
+    findBySenderUsernameOrReceiverUsername(
+            String senderUsername,
+            String receiverUsername
+    );
+
+    long countByMessageTypeIgnoreCase(
+            String messageType
+    );
+
+    List<Message>
+    findByMessageTypeIgnoreCaseOrderByIdDesc(
+            String messageType
+    );
+
+    // =====================================================
+    // USER CALL HISTORY
+    // =====================================================
+
     @Query("""
         SELECT m
         FROM Message m
@@ -98,16 +101,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findCallHistoryByUsername(
             @Param("username") String username
     );
-    
-    /*
-     * =====================================================
-     * GET EXPIRED DISAPPEARING MESSAGES
-     *
-     * Used to permanently remove messages
-     * after their expiration time.
-     * =====================================================
-     */
-    List<Message> findByExpiresAtLessThanEqual(
+
+    // =====================================================
+    // EXPIRED DISAPPEARING MESSAGES
+    // =====================================================
+
+    List<Message>
+    findByExpiresAtLessThanEqual(
             Long currentTime
     );
 }

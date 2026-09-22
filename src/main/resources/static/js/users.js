@@ -65,6 +65,18 @@ function loadCurrentUser() {
 
     .then(user => {
 
+        /* ADMIN accounts belong only to the admin console.
+         * They are not regular chat users and cannot send friend requests
+         * or initiate/receive user calls from the chat application.
+         */
+        if (
+            user.role &&
+            String(user.role).toUpperCase() === "ADMIN"
+        ) {
+            window.location.replace("/admin.html");
+            return;
+        }
+
         loggedInUser =
             user.username;
 
@@ -598,6 +610,19 @@ function updateUnreadBadge(
    SELECT USER
 ===================================================== */
 
+function updateChatSelectionUI(selected) {
+    const chatPanel = document.querySelector('.chat-panel');
+    if (!chatPanel) return;
+
+    if (selected) {
+        chatPanel.classList.remove('no-user-selected');
+        chatPanel.classList.add('has-selected-user');
+    } else {
+        chatPanel.classList.remove('has-selected-user');
+        chatPanel.classList.add('no-user-selected');
+    }
+}
+
 function setChatControlsEnabled(enabled) {
 
     const controls = [
@@ -654,9 +679,13 @@ function selectUser(username) {
 
     currentChatUser =
         username;
-        loadChatUserPresence(
-    username
-);
+
+    updateChatSelectionUI(true);
+
+    loadChatUserPresence(
+        username
+    );
+
 	 // Show call buttons only after selecting user
     document.getElementById("voiceCallButton").style.display = "flex";
 
@@ -1149,6 +1178,8 @@ function clearCurrentChat() {
 
     currentChatUser = "";
 
+    updateChatSelectionUI(false);
+
     setChatControlsEnabled(false);
 
 
@@ -1203,6 +1234,7 @@ document.addEventListener(
             typingIndicator.style.display = "none";
         }
 
+        updateChatSelectionUI(false);
         setChatControlsEnabled(false);
 
         loadCurrentUser();

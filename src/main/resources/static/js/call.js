@@ -2016,28 +2016,15 @@ async function startWebRTCCall() {
 
 async function getLocalMediaStream(callType) {
 
-    console.log("=================================");
-    console.log("GET LOCAL MEDIA");
-    console.log("Call type:", callType);
-    console.log("=================================");
-
     /*
-     * Stop any previous stream
+     * Stop old stream
      */
     if (localStream) {
 
         localStream
             .getTracks()
             .forEach(function(track) {
-
-                console.log(
-                    "Stopping old track:",
-                    track.kind,
-                    track.label
-                );
-
                 track.stop();
-
             });
 
         localStream = null;
@@ -2045,27 +2032,44 @@ async function getLocalMediaStream(callType) {
 
 
     /*
-     * VOICE CALL
+     * VIDEO CALL
+     *
+     * Use flexible/ideal constraints.
+     * Do NOT use exact width/height/deviceId values.
      */
-    if (callType !== "VIDEO") {
-
-        console.log("Requesting MICROPHONE...");
+    if (callType === "VIDEO") {
 
         try {
 
             const stream =
                 await navigator.mediaDevices.getUserMedia({
 
-                    audio: true,
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
 
-                    video: false
+                    video: {
+                        width: {
+                            ideal: 640
+                        },
+
+                        height: {
+                            ideal: 480
+                        },
+
+                        frameRate: {
+                            ideal: 30,
+                            max: 30
+                        },
+
+                        facingMode: {
+                            ideal: "user"
+                        }
+                    }
 
                 });
-
-            console.log(
-                "MICROPHONE SUCCESS:",
-                stream.getAudioTracks()[0]?.label
-            );
 
             return stream;
 
@@ -2074,236 +2078,53 @@ async function getLocalMediaStream(callType) {
         catch (error) {
 
             console.error(
-                "MICROPHONE FAILED:",
+                "VIDEO CAMERA ERROR:",
                 error.name,
-                error.message
+                error.message,
+                error.constraint
             );
 
+            /*
+             * Retry with completely generic
+             * video constraints.
+             */
+            if (
+                error.name === "OverconstrainedError"
+            ) {
+
+                console.warn(
+                    "Retrying camera with basic constraints..."
+                );
+
+                return await navigator.mediaDevices.getUserMedia({
+
+                    audio: true,
+
+                    video: true
+
+                });
+
+            }
+
             throw error;
-
         }
-
     }
 
 
     /*
-     * VIDEO CALL
+     * VOICE CALL
      */
+    return await navigator.mediaDevices.getUserMedia({
 
-    console.log("Finding available cameras...");
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+        },
 
-    let devices;
+        video: false
 
-    try {
-
-        devices =
-            await navigator.mediaDevices.enumerateDevices();
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "DEVICE ENUMERATION FAILED:",
-            error
-        );
-
-        throw error;
-
-    }
-
-
-    const cameras =
-        devices.filter(function(device) {
-
-            return device.kind === "videoinput";
-
-        });
-
-
-    console.log(
-        "Available cameras:",
-        cameras
-    );
-
-
-    if (cameras.length === 0) {
-
-        throw new Error(
-            "No camera detected by browser."
-        );
-
-    }
-
-
-    /*
-     * Use first available camera explicitly
-     */
-
-    const cameraId =
-        cameras[0].deviceId;
-
-
-    console.log(
-        "Selected camera:",
-        cameras[0].label,
-        cameraId
-    );
-
-
-    /*
-     * Request CAMERA
-     */
-
-    let videoStream;
-
-    try {
-
-        videoStream =
-            await navigator.mediaDevices.getUserMedia({
-
-                video: {
-
-                    deviceId: {
-                        exact: cameraId
-                    },
-
-                    width: {
-                        ideal: 1280
-                    },
-
-                    height: {
-                        ideal: 720
-                    }
-
-                },
-
-                audio: false
-
-            });
-
-        console.log(
-            "CAMERA SUCCESS:",
-            videoStream
-                .getVideoTracks()[0]
-                ?.label
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "================================="
-        );
-
-        console.error(
-            "CAMERA FAILED"
-        );
-
-        console.error(
-            "Error name:",
-            error?.name
-        );
-
-        console.error(
-            "Error message:",
-            error?.message
-        );
-
-        console.error(
-            "Camera:",
-            cameras[0]?.label
-        );
-
-        console.error(
-            "Camera ID:",
-            cameraId
-        );
-
-        console.error(
-            "================================="
-        );
-
-        throw new Error(
-            "Camera failed: " +
-            (error?.name || error?.message)
-        );
-
-    }
-
-
-    /*
-     * Request MICROPHONE
-     */
-
-    let audioStream;
-
-    try {
-
-        audioStream =
-            await navigator.mediaDevices.getUserMedia({
-
-                audio: true,
-
-                video: false
-
-            });
-
-        console.log(
-            "MICROPHONE SUCCESS:",
-            audioStream
-                .getAudioTracks()[0]
-                ?.label
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "MICROPHONE FAILED:",
-            error?.name,
-            error?.message
-        );
-
-        videoStream
-            .getTracks()
-            .forEach(function(track) {
-
-                track.stop();
-
-            });
-
-        throw new Error(
-            "Microphone failed: " +
-            (error?.name || error?.message)
-        );
-
-    }
-
-
-    /*
-     * Combine CAMERA + MICROPHONE
-     */
-
-    const combinedStream =
-        new MediaStream([
-
-            ...videoStream.getVideoTracks(),
-
-            ...audioStream.getAudioTracks()
-
-        ]);
-
-
-    console.log(
-        "CAMERA + MICROPHONE SUCCESS"
-    );
-
-
-    return combinedStream;
-
+    });
 }
 /* =====================================================
    CREATE PEER CONNECTION

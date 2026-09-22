@@ -226,25 +226,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             ) {
 
 
-                UserDetails userDetails =
-                        customUserDetailsService
-                            .loadUserByUsername(
-                                username
-                            );
+            	UserDetails userDetails =
+            	        customUserDetailsService
+            	            .loadUserByUsername(
+            	                username
+            	            );
 
 
-                /*
-                 * =================================
-                 * VALIDATE TOKEN
-                 * =================================
-                 */
+            	/*
+            	 * =================================
+            	 * CHECK ACCOUNT STATUS
+            	 * =================================
+            	 */
 
-                if (
-                    jwtService.isTokenValid(
-                        jwt,
-                        userDetails.getUsername()
-                    )
-                ) {
+            	if (!userDetails.isEnabled()) {
+
+            	    response.setStatus(
+            	        HttpServletResponse.SC_FORBIDDEN
+            	    );
+
+            	    response.setContentType(
+            	        "application/json"
+            	    );
+
+            	    response.getWriter().write(
+            	        "{\"error\":\"Account is deactivated\"}"
+            	    );
+
+            	    return;
+            	}
+
+
+            	/*
+            	 * =================================
+            	 * VALIDATE TOKEN
+            	 * =================================
+            	 */
+
+            	if (
+            	    jwtService.isTokenValid(
+            	        jwt,
+            	        userDetails.getUsername()
+            	    )
+            	) {
 
 
                     UsernamePasswordAuthenticationToken

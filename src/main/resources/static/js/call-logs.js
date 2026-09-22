@@ -64,7 +64,11 @@ document.addEventListener(
 
     function () {
 
-        loadCallLogs();
+        ensureNonAdminCallLogsAccess().then(function (allowed) {
+            if (allowed) {
+                loadCallLogs();
+            }
+        });
 
     }
 );
@@ -74,6 +78,39 @@ document.addEventListener(
 /* =====================================================
    OPEN CALL LOGS
 ===================================================== */
+
+
+async function ensureNonAdminCallLogsAccess() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.replace("/login.html");
+        return false;
+    }
+
+    try {
+        const response = await fetch("/user/me", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!response.ok) {
+            window.location.replace("/login.html");
+            return false;
+        }
+
+        const user = await response.json();
+        if (user.role && String(user.role).toUpperCase() === "ADMIN") {
+            window.location.replace("/admin.html");
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Unable to verify call-log access:", error);
+        return false;
+    }
+}
 
 function openCallLogs() {
 

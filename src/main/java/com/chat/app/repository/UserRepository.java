@@ -9,11 +9,8 @@ import org.springframework.stereotype.Repository;
 import com.chat.app.model.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-
-    // =====================================================
-    // EXISTING FUNCTIONALITY
-    // =====================================================
+public interface UserRepository
+        extends JpaRepository<User, Long> {
 
     boolean existsByUsername(
             String username
@@ -31,14 +28,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             String username
     );
 
-
     // =====================================================
-    // ADMIN - USER MANAGEMENT
+    // ADMIN DASHBOARD
     // =====================================================
 
     long countByOnlineTrue();
 
-
     long countByOnlineFalse();
-
 }

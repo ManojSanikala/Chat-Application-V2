@@ -1,5 +1,6 @@
 package com.chat.app.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,14 +13,25 @@ import com.chat.app.model.MessageReaction;
 public interface MessageReactionRepository
         extends JpaRepository<MessageReaction, Long> {
 
-    List<MessageReaction> findByMessageId(Long messageId);
+    List<MessageReaction>
+    findByMessageId(Long messageId);
 
     Optional<MessageReaction>
     findByMessageIdAndUsername(
             Long messageId,
-            String username);
+            String username
+    );
 
     void deleteByMessageIdAndUsername(
             Long messageId,
-            String username);
+            String username
+    );
+
+    // =====================================================
+    // ADMIN MESSAGE DELETE
+    // =====================================================
+
+    void deleteByMessageIdIn(
+            Collection<Long> messageIds
+    );
 }
