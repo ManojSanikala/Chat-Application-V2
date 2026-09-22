@@ -258,22 +258,28 @@ function connectWebSocket() {
 
             subscribeToMessages();
 
-            subscribeToTyping();
+subscribeToTyping();
 
-            subscribeToStatus();
+subscribeToStatus();
 
-            subscribeToPresence();
+subscribeToPresence();
 
-            subscribeToUnread();
+subscribeToUnread();
 
-            subscribeToDelete();
+/* REAL-TIME FRIEND REQUESTS */
+subscribeToFriendRequests();
 
-            subscribeToEdit();
-            
-            subscribeToReaction();
-            subscribeToErrors();
-            subscribeToCalls();
+subscribeToFriendRequestResponse();
 
+subscribeToDelete();
+
+subscribeToEdit();
+
+subscribeToReaction();
+
+subscribeToErrors();
+
+subscribeToCalls();
 
             console.log(
                 "All WebSocket subscriptions completed"
@@ -1156,29 +1162,10 @@ function subscribeToUnread() {
             );
 
 
-            /*
-             * IMPORTANT:
-             *
-             * Some backend versions send:
-             *
-             * event.username
-             *
-             * Other versions send:
-             *
-             * event.sender
-             *
-             * Accept both.
-             */
-
             const username =
                 event.username ||
                 event.sender;
 
-
-            /*
-             * Accept multiple possible
-             * backend property names.
-             */
 
             const unreadCount =
                 Number(
@@ -1200,26 +1187,13 @@ function subscribeToUnread() {
             }
 
 
-            console.log(
-                "Unread user:",
-                username
-            );
-
-
-            console.log(
-                "Unread count:",
-                unreadCount
-            );
-
-
             /*
-             * If currently opened chat,
-             * badge must always be zero.
+             * If this chat is currently open,
+             * unread count must remain zero.
              */
 
             if (
-                username ===
-                currentChatUser
+                username === currentChatUser
             ) {
 
                 if (
@@ -1234,14 +1208,17 @@ function subscribeToUnread() {
 
                 }
 
-
                 return;
 
             }
 
 
             /*
-             * Update badge.
+             * Update immediately.
+             *
+             * DO NOT call loadUsers() here.
+             * It can recreate the DOM and overwrite
+             * the real-time unread badge.
              */
 
             if (
@@ -1256,26 +1233,11 @@ function subscribeToUnread() {
 
             }
 
-
-            /*
-             * Also refresh user list if needed.
-             */
-
-            if (
-                typeof loadUsers ===
-                "function"
-            ) {
-
-                loadUsers();
-
-            }
-
         }
 
     );
 
 }
-
 
 /* =====================================================
    6. DELETE FOR EVERYONE
@@ -1932,5 +1894,224 @@ function subscribeToReaction() {
     );
 }
 
+/* =====================================================
+   FRIEND REQUEST REAL-TIME
+===================================================== */
 
+function subscribeToFriendRequests() {
+
+    if (
+        !stompClient ||
+        !stompClient.connected
+    ) {
+
+        return;
+
+    }
+
+
+    console.log(
+        "Subscribing to friend request notifications"
+    );
+
+
+    stompClient.subscribe(
+
+        "/user/queue/friend-requests",
+
+        function (message) {
+
+            let event;
+
+
+            try {
+
+                event =
+                    JSON.parse(
+                        message.body
+                    );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Invalid friend request event:",
+                    message.body
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "FRIEND REQUEST RECEIVED:",
+                event
+            );
+
+
+            /*
+             * Notify other JavaScript files
+             * immediately.
+             */
+
+            window.dispatchEvent(
+
+                new CustomEvent(
+
+                    "friendRequestReceived",
+
+                    {
+                        detail: event
+                    }
+
+                )
+
+            );
+
+
+            /*
+             * Refresh friend request count.
+             */
+
+            if (
+                typeof loadFriendRequestCount ===
+                "function"
+            ) {
+
+                loadFriendRequestCount();
+
+            }
+
+
+            /*
+             * Refresh request list only
+             * if the function exists.
+             */
+
+            if (
+                typeof loadFriendRequests ===
+                "function"
+            ) {
+
+                loadFriendRequests();
+
+            }
+
+        }
+
+    );
+
+}
+/* =====================================================
+   FRIEND REQUEST RESPONSE
+   ACCEPT / REJECT REAL-TIME
+===================================================== */
+
+function subscribeToFriendRequestResponse() {
+
+    if (
+        !stompClient ||
+        !stompClient.connected
+    ) {
+
+        return;
+
+    }
+
+
+    console.log(
+        "Subscribing to friend request responses"
+    );
+
+
+    stompClient.subscribe(
+
+        "/user/queue/friend-request-response",
+
+        function (message) {
+
+            let event;
+
+
+            try {
+
+                event =
+                    JSON.parse(
+                        message.body
+                    );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Invalid friend request response:",
+                    message.body
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "FRIEND REQUEST RESPONSE:",
+                event
+            );
+
+
+            /*
+             * Notify existing frontend code.
+             */
+
+            window.dispatchEvent(
+
+                new CustomEvent(
+
+                    "friendRequestResponseReceived",
+
+                    {
+                        detail: event
+                    }
+
+                )
+
+            );
+
+
+            /*
+             * Refresh users immediately.
+             *
+             * Sender and receiver friendship
+             * status may have changed.
+             */
+
+            if (
+                typeof loadUsers ===
+                "function"
+            ) {
+
+                loadUsers();
+
+            }
+
+
+            /*
+             * Optional friend request refresh.
+             */
+
+            if (
+                typeof loadFriendRequests ===
+                "function"
+            ) {
+
+                loadFriendRequests();
+
+            }
+
+        }
+
+    );
+
+}
 function subscribeToErrors(){if(!stompClient||!stompClient.connected)return;stompClient.subscribe("/user/queue/errors",function(message){const text=message.body||"Unable to send message.";if(typeof showChatToast==="function")showChatToast(text);else alert(text);});}

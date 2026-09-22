@@ -34,6 +34,8 @@ let incomingCall = null;
 
 let callState = "IDLE";
 
+let callDirection = "";
+
 
 /* =====================================================
    WEBRTC VARIABLES
@@ -188,6 +190,8 @@ function startCall(callType) {
 
     callState =
         "OUTGOING";
+        callDirection =
+    "OUTGOING";
 
 /*
  * ADD OUTGOING CALL HISTORY
@@ -654,7 +658,8 @@ function handleIncomingCall(signal) {
 
     callState =
         "INCOMING";
-
+	callDirection =
+    "INCOMING";
 /*
  * ADD INCOMING CALL HISTORY
  
@@ -1509,7 +1514,7 @@ function endCurrentCall() {
 
 
     /*
-     * Save values BEFORE resetCallState()
+     * Save values BEFORE cleanup/reset
      */
 
     const receiver =
@@ -1521,19 +1526,22 @@ function endCurrentCall() {
     const previousCallState =
         callState;
 
+    const direction =
+        callDirection;
+
     const duration =
-        callSeconds;
+        getCurrentCallDuration();
 
 
     /*
      * =================================================
      * SAVE CALL HISTORY
+     *
+     * Direction is preserved even after Answer.
      * =================================================
      */
 
-    if (
-        receiver
-    ) {
+    if (receiver) {
 
         if (
             previousCallState === "CONNECTED"
@@ -1543,7 +1551,8 @@ function endCurrentCall() {
                 receiver,
                 callType,
                 "COMPLETED",
-                duration
+                duration,
+                direction
             );
 
         }
@@ -1556,7 +1565,8 @@ function endCurrentCall() {
                 receiver,
                 callType,
                 "CANCELLED",
-                0
+                0,
+                direction
             );
 
         }
@@ -1569,7 +1579,8 @@ function endCurrentCall() {
                 receiver,
                 callType,
                 "MISSED",
-                0
+                0,
+                direction
             );
 
         }
@@ -1578,16 +1589,10 @@ function endCurrentCall() {
 
 
     /*
-     * =================================================
-     * SEND END SIGNAL
-     *
-     * Existing functionality preserved
-     * =================================================
+     * Send end signal
      */
 
-    if (
-        activeCallUser
-    ) {
+    if (activeCallUser) {
 
         sendCallSignal(
             activeCallUser,
@@ -1599,7 +1604,7 @@ function endCurrentCall() {
 
 
     /*
-     * Existing cleanup
+     * Cleanup
      */
 
     cleanupWebRTC();
@@ -1750,26 +1755,29 @@ function resetCallState() {
     activeCallUser =
         "";
 
-
     activeCallType =
         "";
 
-
     incomingCall =
         null;
-
 
     callState =
         "IDLE";
 
 
+    /*
+     * Reset original direction
+     */
+
+    callDirection =
+        "";
+
+
     isMuted =
         false;
 
-
     callSeconds =
         0;
-
 
     callStartTime =
         null;
@@ -1780,8 +1788,6 @@ function resetCallState() {
     );
 
 }
-
-
 /* =====================================================
    START WEBRTC CALL
 
@@ -1798,6 +1804,51 @@ async function startWebRTCCall() {
 
 
         /*
+         * Clean old WebRTC connection
+         * BEFORE requesting microphone/camera
+         */
+
+        if (peerConnection) {
+
+            try {
+
+                peerConnection.ontrack = null;
+                peerConnection.onicecandidate = null;
+                peerConnection.onconnectionstatechange = null;
+                peerConnection.close();
+
+            } catch (error) {
+
+                console.warn(
+                    "Old peer connection cleanup error:",
+                    error
+                );
+
+            }
+
+            peerConnection = null;
+        }
+
+
+        /*
+         * Stop old media
+         */
+
+        if (localStream) {
+
+            localStream
+                .getTracks()
+                .forEach(function(track) {
+
+                    track.stop();
+
+                });
+
+            localStream = null;
+        }
+
+
+        /*
          * Get microphone / camera
          */
 
@@ -1805,7 +1856,6 @@ async function startWebRTCCall() {
             await getLocalMediaStream(
                 activeCallType
             );
-
 
         console.log(
             "Local media connected"
@@ -1890,42 +1940,73 @@ async function startWebRTCCall() {
 
     }
 
-    catch (error) {
+  catch (error) {
 
-        console.error(
-            "WebRTC start error:",
-            error
+    console.error("=================================");
+    console.error("WEBRTC START ERROR");
+    console.error("Error name:", error?.name);
+    console.error("Error message:", error?.message);
+    console.error("Full error:", error);
+    console.error("=================================");
+
+    const status =
+        document.getElementById(
+            "callModalStatus"
         );
 
+    let message =
+        "Connection error.";
 
-        const status =
-            document.getElementById(
-                "callModalStatus"
-            );
+    if (error?.name === "NotReadableError") {
 
+        message =
+            "Camera or microphone is already in use.";
 
-        if (status) {
+    }
+    else if (error?.name === "NotAllowedError") {
 
-            status.textContent =
-                "Unable to access microphone/camera.";
+        message =
+            "Camera or microphone permission denied.";
 
-        }
+    }
+    else if (error?.name === "NotFoundError") {
 
+        message =
+            "Camera or microphone not found.";
 
-        setTimeout(
+    }
+    else if (error?.name === "OverconstrainedError") {
 
-            function() {
+        message =
+            "Camera or microphone does not support the requested settings.";
 
-                endCurrentCall();
+    }
+    else if (error?.message) {
 
-            },
-
-            1500
-
-        );
+        message =
+            "Connection error: " +
+            error.message;
 
     }
 
+    if (status) {
+
+        status.textContent =
+            message;
+
+    }
+
+    /*
+     * Release anything already acquired
+     */
+
+    cleanupWebRTC();
+
+    closeCallModal();
+
+    resetCallState();
+
+}
 }
 
 
@@ -1935,25 +2016,72 @@ async function startWebRTCCall() {
 
 async function getLocalMediaStream(callType) {
 
-    /*
-     * Stop old stream
-     */
+    console.log("=================================");
+    console.log("GET LOCAL MEDIA");
+    console.log("Call type:", callType);
+    console.log("=================================");
 
+    /*
+     * Stop any previous stream
+     */
     if (localStream) {
 
         localStream
-
             .getTracks()
+            .forEach(function(track) {
 
-            .forEach(
+                console.log(
+                    "Stopping old track:",
+                    track.kind,
+                    track.label
+                );
 
-                function(track) {
+                track.stop();
 
-                    track.stop();
+            });
 
-                }
+        localStream = null;
+    }
 
+
+    /*
+     * VOICE CALL
+     */
+    if (callType !== "VIDEO") {
+
+        console.log("Requesting MICROPHONE...");
+
+        try {
+
+            const stream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    audio: true,
+
+                    video: false
+
+                });
+
+            console.log(
+                "MICROPHONE SUCCESS:",
+                stream.getAudioTracks()[0]?.label
             );
+
+            return stream;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "MICROPHONE FAILED:",
+                error.name,
+                error.message
+            );
+
+            throw error;
+
+        }
 
     }
 
@@ -1962,38 +2090,221 @@ async function getLocalMediaStream(callType) {
      * VIDEO CALL
      */
 
-    if (
+    console.log("Finding available cameras...");
 
-        callType === "VIDEO"
+    let devices;
 
-    ) {
+    try {
 
-        return await navigator.mediaDevices.getUserMedia({
+        devices =
+            await navigator.mediaDevices.enumerateDevices();
 
-            audio: true,
+    }
 
-            video: true
+    catch (error) {
+
+        console.error(
+            "DEVICE ENUMERATION FAILED:",
+            error
+        );
+
+        throw error;
+
+    }
+
+
+    const cameras =
+        devices.filter(function(device) {
+
+            return device.kind === "videoinput";
 
         });
+
+
+    console.log(
+        "Available cameras:",
+        cameras
+    );
+
+
+    if (cameras.length === 0) {
+
+        throw new Error(
+            "No camera detected by browser."
+        );
 
     }
 
 
     /*
-     * VOICE CALL
+     * Use first available camera explicitly
      */
 
-    return await navigator.mediaDevices.getUserMedia({
+    const cameraId =
+        cameras[0].deviceId;
 
-        audio: true,
 
-        video: false
+    console.log(
+        "Selected camera:",
+        cameras[0].label,
+        cameraId
+    );
 
-    });
+
+    /*
+     * Request CAMERA
+     */
+
+    let videoStream;
+
+    try {
+
+        videoStream =
+            await navigator.mediaDevices.getUserMedia({
+
+                video: {
+
+                    deviceId: {
+                        exact: cameraId
+                    },
+
+                    width: {
+                        ideal: 1280
+                    },
+
+                    height: {
+                        ideal: 720
+                    }
+
+                },
+
+                audio: false
+
+            });
+
+        console.log(
+            "CAMERA SUCCESS:",
+            videoStream
+                .getVideoTracks()[0]
+                ?.label
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "================================="
+        );
+
+        console.error(
+            "CAMERA FAILED"
+        );
+
+        console.error(
+            "Error name:",
+            error?.name
+        );
+
+        console.error(
+            "Error message:",
+            error?.message
+        );
+
+        console.error(
+            "Camera:",
+            cameras[0]?.label
+        );
+
+        console.error(
+            "Camera ID:",
+            cameraId
+        );
+
+        console.error(
+            "================================="
+        );
+
+        throw new Error(
+            "Camera failed: " +
+            (error?.name || error?.message)
+        );
+
+    }
+
+
+    /*
+     * Request MICROPHONE
+     */
+
+    let audioStream;
+
+    try {
+
+        audioStream =
+            await navigator.mediaDevices.getUserMedia({
+
+                audio: true,
+
+                video: false
+
+            });
+
+        console.log(
+            "MICROPHONE SUCCESS:",
+            audioStream
+                .getAudioTracks()[0]
+                ?.label
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "MICROPHONE FAILED:",
+            error?.name,
+            error?.message
+        );
+
+        videoStream
+            .getTracks()
+            .forEach(function(track) {
+
+                track.stop();
+
+            });
+
+        throw new Error(
+            "Microphone failed: " +
+            (error?.name || error?.message)
+        );
+
+    }
+
+
+    /*
+     * Combine CAMERA + MICROPHONE
+     */
+
+    const combinedStream =
+        new MediaStream([
+
+            ...videoStream.getVideoTracks(),
+
+            ...audioStream.getAudioTracks()
+
+        ]);
+
+
+    console.log(
+        "CAMERA + MICROPHONE SUCCESS"
+    );
+
+
+    return combinedStream;
 
 }
-
-
 /* =====================================================
    CREATE PEER CONNECTION
 ===================================================== */
@@ -2414,49 +2725,131 @@ async function handleWebRTCOffer(signal) {
 
     try {
 
-        console.log(
-            "WebRTC offer received"
-        );
+        console.log("=================================");
+        console.log("WEBRTC OFFER RECEIVED");
+        console.log("Signal:", signal);
 
 
-        /*
-         * Validate call state
-         */
-
-        if (
-
-            callState !== "ACTIVE"
-
-        ) {
+        if (callState !== "ACTIVE") {
 
             console.warn(
-                "Received offer while not active."
+                "Received offer while call is not ACTIVE.",
+                "Current state:",
+                callState
             );
 
             return;
         }
 
 
+        activeCallUser = signal.sender;
+        activeCallType = signal.callType;
+
+
+        if (!signal.sdp) {
+
+            throw new Error(
+                "WebRTC offer SDP is missing."
+            );
+
+        }
+
+
         /*
-         * Update call information
+         * Close old peer connection FIRST
          */
 
-        activeCallUser =
-            signal.sender;
+        if (peerConnection) {
 
+            try {
 
-        activeCallType =
-            signal.callType;
+                peerConnection.ontrack = null;
+                peerConnection.onicecandidate = null;
+                peerConnection.onconnectionstatechange = null;
+                peerConnection.close();
+
+            } catch (error) {
+
+                console.warn(
+                    "Old peer connection cleanup error:",
+                    error
+                );
+
+            }
+
+            peerConnection = null;
+        }
 
 
         /*
-         * Get microphone / camera
+         * Stop old media FIRST
+         */
+
+        if (localStream) {
+
+            localStream
+                .getTracks()
+                .forEach(function(track) {
+
+                    track.stop();
+
+                });
+
+            localStream = null;
+        }
+
+
+        /*
+         * Create new peer connection
+         */
+
+        createPeerConnection();
+
+
+        if (!peerConnection) {
+
+            throw new Error(
+                "Peer connection could not be created."
+            );
+
+        }
+
+
+        /*
+         * Set remote offer BEFORE creating answer
+         */
+
+        await peerConnection.setRemoteDescription({
+
+            type: "offer",
+
+            sdp: signal.sdp
+
+        });
+
+
+        console.log(
+            "Remote offer set successfully."
+        );
+
+
+        /*
+         * Now request microphone / camera
          */
 
         localStream =
             await getLocalMediaStream(
                 activeCallType
             );
+
+
+        if (!localStream) {
+
+            throw new Error(
+                "Local media stream is null."
+            );
+
+        }
 
 
         console.log(
@@ -2469,9 +2862,7 @@ async function handleWebRTCOffer(signal) {
          */
 
         if (
-
             activeCallType === "VIDEO"
-
         ) {
 
             showLocalVideo(
@@ -2482,36 +2873,15 @@ async function handleWebRTCOffer(signal) {
 
 
         /*
-         * Create connection
-         */
-
-        createPeerConnection();
-
-
-        /*
-         * Add tracks
+         * Add local tracks
          */
 
         addLocalTracks();
 
 
         /*
-         * Set remote offer
-         */
-
-        await peerConnection.setRemoteDescription({
-
-            type:
-                "offer",
-
-            sdp:
-                signal.sdp
-
-        });
-
-
-        /*
          * Add pending ICE
+
          */
 
         await addPendingIceCandidates();
@@ -2522,7 +2892,6 @@ async function handleWebRTCOffer(signal) {
          */
 
         const answer =
-
             await peerConnection.createAnswer();
 
 
@@ -2531,14 +2900,13 @@ async function handleWebRTCOffer(signal) {
          */
 
         await peerConnection.setLocalDescription(
-
             answer
-
         );
 
 
         /*
          * Send answer
+
          */
 
         sendWebRTCSignal({
@@ -2559,15 +2927,30 @@ async function handleWebRTCOffer(signal) {
 
 
         console.log(
-            "WebRTC answer sent"
+            "WEBRTC ANSWER SENT SUCCESSFULLY"
         );
+
 
     }
 
     catch (error) {
 
         console.error(
-            "WebRTC offer error:",
+            "WEBRTC OFFER ERROR"
+        );
+
+        console.error(
+            "Error name:",
+            error?.name
+        );
+
+        console.error(
+            "Error message:",
+            error?.message
+        );
+
+        console.error(
+            "Full error:",
             error
         );
 
@@ -2581,15 +2964,17 @@ async function handleWebRTCOffer(signal) {
         if (status) {
 
             status.textContent =
-                "Connection error.";
+                "Connection error: " +
+                (
+                    error?.message ||
+                    "Unknown WebRTC error"
+                );
 
         }
 
     }
 
 }
-
-
 /* =====================================================
    RECEIVE WEBRTC ANSWER
 
@@ -3714,7 +4099,7 @@ function loadCallLogs() {
     const token =
         localStorage.getItem("token");
 
-    fetch("/api/calls/logs", {
+    fetch("/call/history", {
 
         method: "GET",
 
@@ -3781,36 +4166,54 @@ function loadCallLogs() {
     if (!container) {
 
         return;
+
     }
 
+
+    /*
+     * =====================================================
+     * NO CALL HISTORY
+     * =====================================================
+     */
+
     if (
+
         !callLogs ||
+
         callLogs.length === 0
+
     ) {
 
         container.innerHTML = `
 
             <div
+
                 style="
                     text-align:center;
                     padding:30px;
                     color:#888;
                 "
+
             >
 
                 <i
+
                     class="
                         fa-solid
                         fa-phone-slash
                     "
+
                     style="
                         font-size:35px;
                         margin-bottom:10px;
                     "
+
                 ></i>
 
                 <div>
+
                     No call history found
+
                 </div>
 
             </div>
@@ -3818,25 +4221,192 @@ function loadCallLogs() {
         `;
 
         return;
+
     }
+
+
+    /*
+     * =====================================================
+     * CLEAR OLD CONTENT
+     * =====================================================
+     */
 
     container.innerHTML = "";
 
+
+    /*
+     * =====================================================
+     * GET LOGGED-IN USERNAME
+     *
+     * IMPORTANT:
+     *
+     * Replace this variable if your project stores
+     * the logged-in username using a different variable.
+     * =====================================================
+     */
+
+    const loggedInUsername =
+        window.currentUsername ||
+        localStorage.getItem("username");
+
+
+    /*
+     * =====================================================
+     * RENDER CALL LOGS
+     * =====================================================
+     */
+
     callLogs.forEach(call => {
+
+
+        /*
+         * =================================================
+         * CREATE ITEM
+         * =================================================
+         */
 
         const item =
             document.createElement("div");
 
+
         item.className =
             "call-log-item";
 
+
+        /*
+         * =================================================
+         * CALL TYPE
+         * =================================================
+         */
+
         const isVideo =
+
             call.callType === "VIDEO";
 
+
         const icon =
+
             isVideo
+
                 ? "fa-video"
+
                 : "fa-phone";
+
+
+        /*
+         * =================================================
+         * FIND OTHER USER
+         *
+         * If logged-in user is sender,
+         * receiver is the other user.
+         *
+         * Otherwise sender is the other user.
+         * =================================================
+         */
+
+        let otherUser =
+            "Unknown User";
+
+
+        if (
+
+            loggedInUsername
+
+        ) {
+
+            if (
+
+                call.senderUsername ===
+                loggedInUsername
+
+            ) {
+
+                otherUser =
+                    call.receiverUsername;
+
+            }
+
+            else {
+
+                otherUser =
+                    call.senderUsername;
+
+            }
+
+        }
+
+        else {
+
+            /*
+             * Fallback
+             */
+
+            otherUser =
+                call.receiverUsername ||
+                call.senderUsername ||
+                "Unknown User";
+
+        }
+
+
+        /*
+         * =================================================
+         * CALL DIRECTION
+         * =================================================
+         */
+
+        const isOutgoing =
+
+            call.senderUsername ===
+            loggedInUsername;
+
+
+        /*
+         * =================================================
+         * CALL STATUS
+         *
+         * Backend returns callStatus.
+         * =================================================
+         */
+
+        const callStatus =
+
+            call.callStatus ||
+
+            "Completed";
+
+
+        /*
+         * =================================================
+         * CALL DIRECTION TEXT
+         * =================================================
+         */
+
+        const directionText =
+
+            isOutgoing
+
+                ? "Outgoing"
+
+                : "Incoming";
+
+
+        /*
+         * =================================================
+         * FINAL DISPLAY TEXT
+         * =================================================
+         */
+
+        const callInfo =
+
+            `${directionText} • ${callStatus}`;
+
+
+        /*
+         * =================================================
+         * BUILD HTML
+         * =================================================
+         */
 
         item.innerHTML = `
 
@@ -3845,56 +4415,73 @@ function loadCallLogs() {
                 <div class="call-log-icon">
 
                     <i
+
                         class="
                             fa-solid
                             ${icon}
                         "
+
                     ></i>
 
                 </div>
 
+
                 <div>
+
 
                     <div class="call-log-name">
 
-                        ${
-                            call.otherUser ||
-                            "Unknown User"
-                        }
+                        ${otherUser}
 
                     </div>
+
 
                     <div class="call-log-info">
 
-                        ${
-                            call.status ||
-                            "Completed"
-                        }
+                        ${callInfo}
 
                     </div>
 
+
                 </div>
+
 
             </div>
 
+
             <div class="call-log-right">
 
+
                 ${
+
                     formatCallTime(
-                        call.createdAt
+
+                        call.timestamp
+
                     )
+
                 }
+
 
             </div>
 
         `;
 
-        container.appendChild(item);
+
+        /*
+         * =================================================
+         * ADD TO CONTAINER
+         * =================================================
+         */
+
+        container.appendChild(
+            item
+        );
+
 
     });
 
-}
-function formatCallTime(dateValue) {
+}function formatCallTime(dateValue) {
 
     if (!dateValue) {
 

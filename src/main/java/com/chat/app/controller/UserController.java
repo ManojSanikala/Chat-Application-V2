@@ -35,6 +35,37 @@ public class UserController {
 	@Autowired
 	private UserBlockService userBlockService;
 	
+	/* =====================================================
+	   PUBLIC USER REGISTRATION
+
+	   Used by login.html Signup form.
+
+	   POST:
+	   /auth/register
+
+	   No authentication required.
+	===================================================== */
+
+	@PostMapping("/register")
+	public ResponseEntity<UserResponse> registerUser(
+	        @Valid @RequestBody UserRequest request
+	) {
+
+	    /*
+	     * Force normal users to USER role.
+	     *
+	     * Frontend cannot create ADMIN accounts.
+	     */
+
+	    request.setRole("USER");
+
+	    UserResponse response =
+	            userService.addUser(request);
+
+	    return ResponseEntity
+	            .status(HttpStatus.CREATED)
+	            .body(response);
+	}
 	@PostMapping("/join")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<UserResponse> joinUser(@Valid @RequestBody UserRequest request) {
@@ -103,5 +134,18 @@ public class UserController {
 		 userService.removeUser(name);
 		
 		return ResponseEntity.ok("User removed successfully");
+	}
+	@GetMapping("/search/{username}")
+	public ResponseEntity<List<UserResponse>> searchUsers(
+	        @PathVariable String username,
+	        Principal principal
+	) {
+
+	    return ResponseEntity.ok(
+	            userService.searchUsers(
+	                    username,
+	                    principal.getName()
+	            )
+	    );
 	}
 }

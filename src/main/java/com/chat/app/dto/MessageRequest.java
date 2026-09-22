@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 public class MessageRequest {
 	@NotNull(message = "User Id is required")
 	private Long userId;
+	private Long receiverId;
 	@NotBlank(message = "Content cannot be empty")
 	private String content;
 	@NotBlank(message = "Timestamp is required")
@@ -15,9 +16,10 @@ public class MessageRequest {
 	public MessageRequest() {
 		super();
 	}
-	public MessageRequest(Long userId, String content, String timestamp) {
+	public MessageRequest(Long userId, Long receiverId, String content, String timestamp) {
 		super();
 		this.userId = userId;
+		this.receiverId = receiverId;
 		this.content = content;
 		this.timestamp = timestamp;
 	}
@@ -26,6 +28,13 @@ public class MessageRequest {
 	}
 	public void setUserId(long userId) {
 		this.userId = userId;
+	}
+	
+	public Long getReceiverId() {
+		return receiverId;
+	}
+	public void setReceiverId(Long receiverId) {
+		this.receiverId = receiverId;
 	}
 	public String getContent() {
 		return content;

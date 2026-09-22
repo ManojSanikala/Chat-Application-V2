@@ -29,249 +29,629 @@ public class MessageService {
     @Autowired
     private ConversationSettingService conversationSettingService;
 
-
-    // =====================================================
-    // USED BY REST API
-    // =====================================================
-
-    public Message saveMessage(MessageRequest request) {
-
-        User user =
-                userRepository
-                    .findById(request.getUserId())
-                    .orElseThrow(() ->
-                        new UserNotFoundException(
-                            "User not found with id "
-                            + request.getUserId()
-                        )
-                    );
-
-
-        Message message =
-                new Message();
-
-
-        message.setSender(user);
-
-        message.setReceiver(null);
-
-        message.setContent(
-            request.getContent()
-        );
-
-        message.setTimestamp(
-            request.getTimestamp()
-        );
-
-
-        message.setStatus(
-            MessageStatus.SENT
-        );
-
-
-        /*
-         * Existing REST messages are TEXT
-         */
-        message.setMessageType(
-            "TEXT"
-        );
-
-
-        return messageRepository.save(
-            message
-        );
-    }
-
-
-    // =====================================================
-    // USED BY WEBSOCKET
-    // =====================================================
+    @Autowired
+    private FriendRequestService friendRequestService;
+    /*
+     * =====================================================
+     * SAVE MESSAGE
+     *
+     * USED BY REST API
+     *
+     * IMPORTANT:
+     *
+     * Sender comes from logged-in user.
+     *
+     * Sender is NOT taken from frontend userId.
+     *
+     * Only accepted friends can send messages.
+     * =====================================================
+     */
 
     public Message saveMessage(
-            User sender,
-            User receiver,
-            String content) {
 
-        Message message =
-                new Message();
+            String senderUsername,
 
+            MessageRequest request
 
-        message.setSender(
-            sender
-        );
-
-        message.setReceiver(
-            receiver
-        );
-
-        message.setContent(
-            content
-        );
-
-        message.setTimestamp(
-            java.time.LocalDateTime
-                .now()
-                .toString()
-        );
-
-
-        message.setStatus(
-            MessageStatus.SENT
-        );
+    ) {
 
 
         /*
-         * Existing WebSocket text messages
+         * =================================================
+         * GET SENDER
+         *
+         * Sender comes from Principal.
+         * =================================================
          */
-        message.setMessageType(
-            "TEXT"
-        );
-
-
-        return messageRepository.save(
-            message
-        );
-    }
-
-
-    // =====================================================
-    // SAVE PRIVATE MESSAGE
-    // =====================================================
-
-    public Message savePrivateMessage(
-            String senderUsername,
-            String receiverUsername,
-            String content,
-            Long replyToMessageId,
-            String replyToContent,
-            String messageType,
-            String fileName,
-            boolean forwarded) {
-
 
         User sender =
                 userRepository
-                    .findByUsername(
-                        senderUsername
-                    )
-                    .orElseThrow(() ->
-                        new UserNotFoundException(
-                            "Sender not found"
+                        .findByUsername(
+                                senderUsername
                         )
-                    );
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "Sender not found"
+                                )
+                        );
 
+
+        /*
+         * =================================================
+         * GET RECEIVER
+         * =================================================
+         */
 
         User receiver =
                 userRepository
-                    .findByUsername(
-                        receiverUsername
-                    )
-                    .orElseThrow(() ->
-                        new UserNotFoundException(
-                            "Receiver not found"
+                        .findById(
+                                request.getReceiverId()
                         )
-                    );
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "Receiver not found"
+                                )
+                        );
 
+
+        /*
+         * =================================================
+         * PREVENT SELF MESSAGE
+         * =================================================
+         */
+
+        if (
+
+                sender.getUsername()
+                        .equalsIgnoreCase(
+
+                                receiver.getUsername()
+
+                        )
+
+        ) {
+
+            throw new RuntimeException(
+                    "You cannot send a message to yourself"
+            );
+        }
+
+
+        /*
+         * =================================================
+         * FRIEND VALIDATION
+         *
+         * Users can send messages only if
+         * friend request is ACCEPTED.
+         * =================================================
+         */
+
+        if (
+
+                !friendRequestService.areFriends(
+
+                        sender.getUsername(),
+
+                        receiver.getUsername()
+
+                )
+
+        ) {
+
+            throw new RuntimeException(
+
+                    "You can send messages only to accepted friends"
+
+            );
+        }
+
+
+        /*
+         * =================================================
+         * CREATE MESSAGE
+         * =================================================
+         */
 
         Message message =
                 new Message();
 
 
         message.setSender(
-            sender
+                sender
         );
 
 
         message.setReceiver(
-            receiver
+                receiver
         );
 
 
         message.setContent(
-            content
+                request.getContent()
         );
 
 
         message.setTimestamp(
-            java.time.LocalDateTime
-                .now()
-                .toString()
+
+                java.time.LocalDateTime
+                        .now()
+                        .toString()
+
         );
 
 
         message.setStatus(
-            MessageStatus.SENT
+                MessageStatus.SENT
         );
 
 
-        /*
-         * =================================================
-         * MESSAGE TYPE
-         * =================================================
-         *
-         * If frontend does not send a type,
-         * keep it as TEXT.
-         */
-      
-
-        if (
-            messageType == null ||
-            messageType.trim().isEmpty()
-        ) {
-
-            message.setMessageType(
+        message.setMessageType(
                 "TEXT"
-            );
-
-        }
-        else {
-
-            message.setMessageType(
-                messageType.toUpperCase()
-            );
-
-            message.setFileName(
-                fileName
-            );
-        }
-
-
-        /*
-         * =================================================
-         * REPLY INFORMATION
-         * =================================================
-         */
-
-        message.setReplyToMessageId(
-            replyToMessageId
-        );
-
-        message.setReplyToContent(
-            replyToContent
         );
 
 
         /*
          * =================================================
-         * FORWARDED MESSAGE
+         * SAVE MESSAGE
          * =================================================
          */
-
-        message.setForwarded(
-            forwarded
-        );
-
-        long disappearingSeconds = conversationSettingService.getDurationSeconds(senderUsername, receiverUsername);
-        if (disappearingSeconds > 0) {
-            message.setExpiresAt(System.currentTimeMillis() + (disappearingSeconds * 1000L));
-        }
 
         return messageRepository.save(
-            message
+                message
         );
     }
-    
-    /*
+ // =====================================================
+ // USED BY WEBSOCKET
+ // =====================================================
+
+ public Message saveMessage(
+
+         User sender,
+
+         User receiver,
+
+         String content
+
+ ) {
+
+     /*
+      * =================================================
+      * VALIDATE USERS
+      * =================================================
+      */
+
+     if (sender == null) {
+
+         throw new RuntimeException(
+                 "Sender not found"
+         );
+     }
+
+
+     if (receiver == null) {
+
+         throw new RuntimeException(
+                 "Receiver not found"
+         );
+     }
+
+
+     /*
+      * =================================================
+      * PREVENT SELF MESSAGE
+      * =================================================
+      */
+
+     if (
+
+             sender.getUsername()
+                     .equalsIgnoreCase(
+                             receiver.getUsername()
+                     )
+
+     ) {
+
+         throw new RuntimeException(
+                 "You cannot send a message to yourself"
+         );
+     }
+
+
+     /*
+      * =================================================
+      * FRIEND VALIDATION
+      *
+      * WebSocket messages can only be sent
+      * between accepted friends.
+      * =================================================
+      */
+
+     if (
+
+             !friendRequestService.areFriends(
+
+                     sender.getUsername(),
+
+                     receiver.getUsername()
+
+             )
+
+     ) {
+
+         throw new RuntimeException(
+
+                 "You can send messages only to accepted friends"
+
+         );
+     }
+
+
+     /*
+      * =================================================
+      * CONTENT VALIDATION
+      * =================================================
+      */
+
+     if (
+
+             content == null
+
+             ||
+
+             content.trim().isEmpty()
+
+     ) {
+
+         throw new RuntimeException(
+                 "Message content cannot be empty"
+         );
+     }
+
+
+     /*
+      * =================================================
+      * CREATE MESSAGE
+      * =================================================
+      */
+
+     Message message =
+             new Message();
+
+
+     message.setSender(
+             sender
+     );
+
+
+     message.setReceiver(
+             receiver
+     );
+
+
+     message.setContent(
+             content.trim()
+     );
+
+
+     /*
+      * =================================================
+      * TIMESTAMP
+      * =================================================
+      */
+
+     message.setTimestamp(
+
+             java.time.LocalDateTime
+                     .now()
+                     .toString()
+
+     );
+
+
+     /*
+      * =================================================
+      * STATUS
+      * =================================================
+      */
+
+     message.setStatus(
+             MessageStatus.SENT
+     );
+
+
+     /*
+      * =================================================
+      * MESSAGE TYPE
+      * =================================================
+      */
+
+     message.setMessageType(
+             "TEXT"
+     );
+
+
+     /*
+      * =================================================
+      * SAVE MESSAGE
+      * =================================================
+      */
+
+     return messageRepository.save(
+             message
+     );
+ }
+
+//=====================================================
+//SAVE PRIVATE MESSAGE
+//=====================================================
+
+public Message savePrivateMessage(
+
+      String senderUsername,
+
+      String receiverUsername,
+
+      String content,
+
+      Long replyToMessageId,
+
+      String replyToContent,
+
+      String messageType,
+
+      String fileName,
+
+      boolean forwarded) {
+
+  /*
+   * =================================================
+   * NEW: PREVENT SELF MESSAGE
+   * =================================================
+   */
+
+  if (
+          senderUsername == null
+          ||
+          receiverUsername == null
+  ) {
+
+      throw new RuntimeException(
+              "Sender and receiver are required"
+      );
+  }
+
+
+  if (
+          senderUsername.equalsIgnoreCase(
+                  receiverUsername
+          )
+  ) {
+
+      throw new RuntimeException(
+              "You cannot send a message to yourself"
+      );
+  }
+
+
+  /*
+   * =================================================
+   * FRIEND VALIDATION
+   * =================================================
+   *
+   * Users can send private messages only after
+   * friend request is accepted.
+   */
+
+  if (!friendRequestService.areFriends(
+
+          senderUsername,
+
+          receiverUsername
+
+  )) {
+
+      throw new RuntimeException(
+
+              "You can send messages only to accepted friends"
+
+      );
+  }
+
+
+  /*
+   * =================================================
+   * EXISTING CODE - DO NOT CHANGE
+   * =================================================
+   */
+
+  User sender =
+
+          userRepository
+
+              .findByUsername(
+
+                  senderUsername
+
+              )
+
+              .orElseThrow(() ->
+
+                  new UserNotFoundException(
+
+                      "Sender not found"
+
+                  )
+
+              );
+
+
+  User receiver =
+
+          userRepository
+
+              .findByUsername(
+
+                  receiverUsername
+
+              )
+
+              .orElseThrow(() ->
+
+                  new UserNotFoundException(
+
+                      "Receiver not found"
+
+                  )
+
+              );
+
+
+  Message message =
+
+          new Message();
+
+
+  message.setSender(
+
+      sender
+
+  );
+
+
+  message.setReceiver(
+
+      receiver
+
+  );
+
+
+  message.setContent(
+
+      content
+
+  );
+
+
+  message.setTimestamp(
+
+      java.time.LocalDateTime
+
+          .now()
+
+          .toString()
+
+  );
+
+
+  message.setStatus(
+
+      MessageStatus.SENT
+
+  );
+
+
+  /*
+   * =================================================
+   * MESSAGE TYPE
+   * =================================================
+   *
+   * If frontend does not send a type,
+   * keep it as TEXT.
+   */
+
+  if (
+
+      messageType == null ||
+
+      messageType.trim().isEmpty()
+
+  ) {
+
+      message.setMessageType(
+
+          "TEXT"
+
+      );
+
+  }
+
+  else {
+
+      message.setMessageType(
+
+          messageType.toUpperCase()
+
+      );
+
+      message.setFileName(
+
+          fileName
+
+      );
+
+  }
+
+
+  /*
+   * =================================================
+   * REPLY INFORMATION
+   * =================================================
+   */
+
+  message.setReplyToMessageId(
+
+      replyToMessageId
+
+  );
+
+  message.setReplyToContent(
+
+      replyToContent
+
+  );
+
+
+  /*
+   * =================================================
+   * FORWARDED MESSAGE
+   * =================================================
+   */
+
+  message.setForwarded(
+
+      forwarded
+
+  );
+
+
+  long disappearingSeconds =
+          conversationSettingService
+                  .getDurationSeconds(
+                          senderUsername,
+                          receiverUsername
+                  );
+
+
+  if (disappearingSeconds > 0) {
+
+      message.setExpiresAt(
+
+              System.currentTimeMillis()
+                      +
+              (disappearingSeconds * 1000L)
+
+      );
+
+  }
+
+
+  return messageRepository.save(
+
+      message
+
+  );
+
+}/*
      * =====================================================
      * SAVE CALL HISTORY
      * =====================================================
@@ -524,205 +904,324 @@ public class MessageService {
         );
 
     }
-    // =====================================================
-    // GET CONVERSATION HISTORY
-    // =====================================================
+ // =====================================================
+ // GET CONVERSATION HISTORY
+ // =====================================================
 
-    @Transactional(readOnly = true)
-    public List<ChatHistoryResponse> getConversation(
-            String user1,
-            String user2) {
-
-
-        System.out.println(
-            "================================="
-        );
-
-        System.out.println(
-            "CHAT HISTORY REQUEST"
-        );
-
-        System.out.println(
-            "USER 1 : " + user1
-        );
-
-        System.out.println(
-            "USER 2 : " + user2
-        );
-
-        System.out.println(
-            "================================="
-        );
+ @Transactional(readOnly = true)
+ public List<ChatHistoryResponse> getConversation(
+         String user1,
+         String user2
+ ) {
 
 
-        List<Message> messages =
-                messageRepository.findConversation(
-                    user1,
-                    user2
-                );
+     /*
+      * =================================================
+      * VALIDATE USERS
+      * =================================================
+      */
+
+     if (
+             user1 == null ||
+             user1.trim().isEmpty()
+     ) {
+
+         throw new RuntimeException(
+                 "Logged-in user not found"
+         );
+     }
 
 
-        System.out.println(
-            "MESSAGES FOUND : "
-            + messages.size()
-        );
+     if (
+             user2 == null ||
+             user2.trim().isEmpty()
+     ) {
+
+         throw new RuntimeException(
+                 "Receiver username is required"
+         );
+     }
 
 
-        return messages
-            .stream()
+     /*
+      * =================================================
+      * PREVENT SELF CONVERSATION
+      * =================================================
+      */
 
-            .filter(message -> {
+     if (
+             user1.equalsIgnoreCase(
+                     user2
+             )
+     ) {
 
-                /*
-                 * Sender deleted for himself
-                 */
-
-                if (
-                    message.getSender()
-                           .getUsername()
-                           .equals(user1)
-                    &&
-                    message.isDeletedBySender()
-                ) {
-
-                    return false;
-                }
+         throw new RuntimeException(
+                 "You cannot open a conversation with yourself"
+         );
+     }
 
 
-                /*
-                 * Receiver deleted for himself
-                 */
+     /*
+      * =================================================
+      * FRIEND VALIDATION
+      *
+      * Conversation can only be accessed
+      * between accepted friends.
+      * =================================================
+      */
 
-                if (
-                    message.getReceiver()
-                           .getUsername()
-                           .equals(user1)
-                    &&
-                    message.isDeletedByReceiver()
-                ) {
+     if (
+             !friendRequestService.areFriends(
+                     user1,
+                     user2
+             )
+     ) {
 
-                    return false;
-                }
-
-                if (message.getExpiresAt() != null && message.getExpiresAt() <= System.currentTimeMillis()) {
-                    return false;
-                }
-
-                return true;
-            })
-
-
-            .map(message -> {
-
-                System.out.println(
-                    "MESSAGE ID : "
-                    + message.getId()
-                    + " | FROM : "
-                    + message.getSender().getUsername()
-                    + " | CONTENT : "
-                    + message.getContent()
-                );
-
-                ChatHistoryResponse response =
-                        new ChatHistoryResponse(
-
-                            message.getId(),
-
-                            message.getSender()
-                                   .getUsername(),
-
-                            message.getContent(),
-
-                            message.getTimestamp(),
-
-                            message.getStatus(),
-
-                            message.isEdited(),
-
-                            message.getReplyToMessageId(),
-
-                            message.getReplyToContent(),
-
-                            message.getMessageType()
-                        );
-
-                response.setFileName(
-                	    message.getFileName()
-                	);
-
-                	response.setForwarded(
-                	    message.isForwarded()
-                	);
-                	
-                	response.setExpiresAt(
-                	        message.getExpiresAt()
-                	);
+         throw new RuntimeException(
+                 "You can view conversation only with accepted friends"
+         );
+     }
 
 
-                	/*
-                	 * =====================================================
-                	 * CALL HISTORY INFORMATION
-                	 * =====================================================
-                	 */
+     /*
+      * =================================================
+      * GET CONVERSATION
+      * =================================================
+      */
 
-                	if (
-                	        "CALL".equalsIgnoreCase(
-                	                message.getMessageType()
-                	        )
-                	) {
-
-                	    response.setCallType(
-                	            message.getCallType()
-                	    );
-
-                	    /*
-                	     * =====================================================
-                	     * CALL DIRECTION
-                	     *
-                	     * Determine direction based on
-                	     * the user currently viewing the conversation.
-                	     * =====================================================
-                	     */
-
-                	    if (
-                	            message.getSender()
-                	                   .getUsername()
-                	                   .equalsIgnoreCase(user1)
-                	    ) {
-
-                	        response.setCallDirection(
-                	                "OUTGOING"
-                	        );
-
-                	    }
-                	    else {
-
-                	        response.setCallDirection(
-                	                "INCOMING"
-                	        );
-
-                	    }
-
-                	    response.setCallStatus(
-                	            message.getCallStatus()
-                	    );
-
-                	    response.setCallDuration(
-                	            message.getCallDuration()
-                	    );
-
-                	}
+     List<Message> messages =
+             messageRepository.findConversation(
+                     user1,
+                     user2
+             );
 
 
-                	return response;
+     /*
+      * =================================================
+      * FILTER MESSAGES
+      * =================================================
+      */
 
-                	
+     return messages
+             .stream()
 
-            })
+             .filter(message -> {
 
-            .toList();
-    }
 
+                 /*
+                  * =========================================
+                  * SENDER DELETED MESSAGE FOR HIMSELF
+                  * =========================================
+                  */
+
+                 if (
+
+                         message.getSender() != null
+
+                         &&
+
+                         message.getSender()
+                                 .getUsername()
+                                 .equals(user1)
+
+                         &&
+
+                         message.isDeletedBySender()
+
+                 ) {
+
+                     return false;
+                 }
+
+
+                 /*
+                  * =========================================
+                  * RECEIVER DELETED MESSAGE FOR HIMSELF
+                  * =========================================
+                  */
+
+                 if (
+
+                         message.getReceiver() != null
+
+                         &&
+
+                         message.getReceiver()
+                                 .getUsername()
+                                 .equals(user1)
+
+                         &&
+
+                         message.isDeletedByReceiver()
+
+                 ) {
+
+                     return false;
+                 }
+
+
+                 /*
+                  * =========================================
+                  * DISAPPEARING MESSAGE EXPIRED
+                  * =========================================
+                  */
+
+                 if (
+
+                         message.getExpiresAt() != null
+
+                         &&
+
+                         message.getExpiresAt()
+                                 <= System.currentTimeMillis()
+
+                 ) {
+
+                     return false;
+                 }
+
+
+                 return true;
+
+             })
+
+
+             /*
+              * =============================================
+              * CONVERT TO RESPONSE
+              * =============================================
+              */
+
+             .map(message -> {
+
+
+                 ChatHistoryResponse response =
+                         new ChatHistoryResponse(
+
+                                 message.getId(),
+
+                                 message.getSender()
+                                         .getUsername(),
+
+                                 message.getContent(),
+
+                                 message.getTimestamp(),
+
+                                 message.getStatus(),
+
+                                 message.isEdited(),
+
+                                 message.getReplyToMessageId(),
+
+                                 message.getReplyToContent(),
+
+                                 message.getMessageType()
+                         );
+
+
+                 /*
+                  * =========================================
+                  * FILE INFORMATION
+                  * =========================================
+                  */
+
+                 response.setFileName(
+                         message.getFileName()
+                 );
+
+
+                 /*
+                  * =========================================
+                  * FORWARDED
+                  * =========================================
+                  */
+
+                 response.setForwarded(
+                         message.isForwarded()
+                 );
+
+
+                 /*
+                  * =========================================
+                  * DISAPPEARING MESSAGE
+                  * =========================================
+                  */
+
+                 response.setExpiresAt(
+                         message.getExpiresAt()
+                 );
+
+
+                 /*
+                  * =========================================
+                  * CALL HISTORY INFORMATION
+                  * =========================================
+                  */
+
+                 if (
+
+                         "CALL".equalsIgnoreCase(
+                                 message.getMessageType()
+                         )
+
+                 ) {
+
+
+                     response.setCallType(
+                             message.getCallType()
+                     );
+
+
+                     /*
+                      * =====================================
+                      * CALL DIRECTION
+                      * =====================================
+                      */
+
+                     if (
+
+                             message.getSender()
+                                     .getUsername()
+                                     .equalsIgnoreCase(
+                                             user1
+                                     )
+
+                     ) {
+
+                         response.setCallDirection(
+                                 "OUTGOING"
+                         );
+
+                     }
+
+                     else {
+
+                         response.setCallDirection(
+                                 "INCOMING"
+                         );
+
+                     }
+
+
+                     response.setCallStatus(
+                             message.getCallStatus()
+                     );
+
+
+                     response.setCallDuration(
+                             message.getCallDuration()
+                     );
+
+                 }
+
+
+                 return response;
+
+             })
+
+             .toList();
+
+ }
 
     // =====================================================
     // MARK AS DELIVERED
@@ -1144,63 +1643,77 @@ public class MessageService {
                         username
                 )
                 .stream()
-
                 .map(message -> {
 
                     MessageResponse response =
                             new MessageResponse(
-
                                     message.getId(),
-
-                                    message
-                                            .getSender()
-                                            .getUsername(),
-
-                                    message
-                                            .getReceiver()
-                                            .getUsername(),
-
+                                    message.getSender().getUsername(),
+                                    message.getReceiver().getUsername(),
                                     message.getContent(),
-
                                     message.getTimestamp(),
-
                                     message.getStatus(),
-
                                     message.isEdited(),
-
                                     message.getReplyToMessageId(),
-
                                     message.getReplyToContent(),
-
                                     message.getMessageType()
                             );
 
+                    // CHANGE THIS PART
 
                     response.setCallType(
                             message.getCallType()
                     );
 
+                    if (message.getSender().getUsername().equals(username)) {
 
-                    response.setCallDirection(
-                            message.getCallDirection()
-                    );
+                        response.setCallDirection("OUTGOING");
 
+                    } else {
+
+                        response.setCallDirection("INCOMING");
+
+                    }
 
                     response.setCallStatus(
                             message.getCallStatus()
                     );
 
-
                     response.setCallDuration(
                             message.getCallDuration()
                     );
 
-
                     return response;
 
                 })
-
                 .toList();
+    }
+    /*
+     * =====================================================
+     * DELETE EXPIRED DISAPPEARING MESSAGES
+     *
+     * Permanently removes messages whose
+     * expiration time has already passed.
+     * =====================================================
+     */
+
+    @Transactional
+    public void deleteExpiredMessages() {
+
+        List<Message> expiredMessages =
+                messageRepository
+                        .findByExpiresAtLessThanEqual(
+                                System.currentTimeMillis()
+                        );
+
+        if (
+                !expiredMessages.isEmpty()
+        ) {
+
+            messageRepository.deleteAll(
+                    expiredMessages
+            );
+        }
     }
 
 }

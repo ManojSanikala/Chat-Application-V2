@@ -36,40 +36,92 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         /*
          * =========================================
-         * PUBLIC ENDPOINTS
+         * PUBLIC AUTH ENDPOINTS
          * =========================================
-         *
-         * JWT filter will completely skip these.
          */
 
         if (path.equals("/auth/login")) {
             return true;
         }
 
-
-        if (path.equals("/login.html")) {
+        if (path.equals("/auth/register")) {
             return true;
         }
 
+
+        /*
+         * =========================================
+         * PUBLIC PAGES
+         * =========================================
+         */
 
         if (path.equals("/")) {
             return true;
         }
 
+        if (path.equals("/login.html")) {
+            return true;
+        }
+
+        if (path.equals("/index.html")) {
+            return true;
+        }
+
+
+        /*
+         * =========================================
+         * JAVASCRIPT FILES
+         * =========================================
+         */
+
+        if (path.equals("/app.js")) {
+            return true;
+        }
+
+        if (path.equals("/websocket.js")) {
+            return true;
+        }
+
+        if (path.equals("/users.js")) {
+            return true;
+        }
+
+        if (path.equals("/messages.js")) {
+            return true;
+        }
 
         if (path.startsWith("/js/")) {
             return true;
         }
 
 
+        /*
+         * =========================================
+         * CSS
+         * =========================================
+         */
+
         if (path.startsWith("/css/")) {
             return true;
         }
 
 
+        /*
+         * =========================================
+         * IMAGES
+         * =========================================
+         */
+
         if (path.startsWith("/images/")) {
             return true;
         }
+
+
+        /*
+         * =========================================
+         * UPLOADS
+         * =========================================
+         */
 
         if (path.startsWith("/uploads/images/")) {
             return true;
@@ -77,21 +129,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (path.startsWith("/uploads/files/")) {
             return true;
-        } 
-        
+        }
+
+
+        /*
+         * =========================================
+         * FAVICON
+         * =========================================
+         */
+
         if (path.equals("/favicon.ico")) {
             return true;
         }
 
+
+        /*
+         * =========================================
+         * PUBLIC CHAT
+         * =========================================
+         */
 
         if (path.startsWith("/chat/")) {
             return true;
         }
 
 
+        /*
+         * =========================================
+         * JWT REQUIRED
+         * =========================================
+         */
+
         return false;
     }
-
 
     @Override
     protected void doFilterInternal(

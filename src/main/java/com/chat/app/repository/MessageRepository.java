@@ -98,4 +98,16 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findCallHistoryByUsername(
             @Param("username") String username
     );
+    
+    /*
+     * =====================================================
+     * GET EXPIRED DISAPPEARING MESSAGES
+     *
+     * Used to permanently remove messages
+     * after their expiration time.
+     * =====================================================
+     */
+    List<Message> findByExpiresAtLessThanEqual(
+            Long currentTime
+    );
 }

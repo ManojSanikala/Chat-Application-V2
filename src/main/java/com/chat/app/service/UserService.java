@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.chat.app.dto.UserProfileRequest;
 import com.chat.app.dto.UserRequest;
 import com.chat.app.dto.UserResponse;
 import com.chat.app.enums.MessageStatus;
@@ -21,94 +22,216 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private MessageRepository messageRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     /*
      * =====================================================
-     * Register New User
-     * Encrypts password and saves user into database.
+     * REGISTER NEW USER
      * =====================================================
      */
+    @Transactional
     public UserResponse addUser(UserRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username is already in use");
+
+            throw new IllegalArgumentException(
+                    "Username is already in use"
+            );
         }
 
         User user = new User();
 
-        user.setUsername(request.getUsername());
-
-        // Encrypt password before storing
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        user.setRole(request.getRole());
-
-        User savedUser = userRepository.save(user);
-
-        return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getRole(),
-                user.isOnline(),
-                user.getLastSeen()
+        user.setUsername(
+                request.getUsername().trim()
         );
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
+
+        user.setRole(
+                request.getRole()
+        );
+
+        /*
+         * New user starts offline.
+         */
+        user.setOnline(false);
+
+        user.setLastSeen(null);
+
+        User savedUser =
+                userRepository.save(user);
+
+        return toUserResponse(savedUser);
     }
+
 
     /*
      * =====================================================
-     * Get Currently Logged-in User
-     * Used after JWT authentication.
+     * GET CURRENT USER / USER PROFILE
+     *
+     * Used by:
+     * GET /user/me
+     * GET /user/profile/{username}
+     *
+     * Includes:
+     * - Username
+     * - Role
+     * - Online Status
+     * - Last Seen
+     * - Display Name
+     * - Email
+     * - Bio
+     * - Profile Picture
      * =====================================================
      */
-    public UserResponse getCurrentUser(String username) {
+    @Transactional(readOnly = true)
+    public UserResponse getCurrentUser(
+            String username
+    ) {
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() ->
-                        new UserNotFoundException("User not found"));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "User not found"
+                                )
+                        );
 
         return toUserResponse(user);
     }
 
-    @Transactional
-    public UserResponse updateProfile(String username, com.chat.app.dto.UserProfileRequest request) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        user.setDisplayName(clean(request.getDisplayName(), 100));
-        user.setEmail(clean(request.getEmail(), 120));
-        user.setBio(clean(request.getBio(), 500));
-        if (request.getProfilePicture() != null) {
-            user.setProfilePicture(clean(request.getProfilePicture(), 500));
-        }
-        return toUserResponse(userRepository.save(user));
-    }
-
-    private String clean(String value, int max) {
-        if (value == null) return null;
-        String v = value.trim();
-        return v.length() > max ? v.substring(0, max) : v;
-    }
-
-    private UserResponse toUserResponse(User user) {
-        UserResponse response = new UserResponse(user.getId(), user.getUsername(), user.getRole(), user.isOnline(), user.getLastSeen());
-        response.setDisplayName(user.getDisplayName());
-        response.setEmail(user.getEmail());
-        response.setBio(user.getBio());
-        response.setProfilePicture(user.getProfilePicture());
-        return response;
-    }
 
     /*
      * =====================================================
-     * Get All Registered Users
-     * Also returns unread message count for each user.
+     * UPDATE MY PROFILE
+     *
+     * Used by:
+     * PUT /user/profile
+     *
+     * Profile picture is expected to already contain
+     * the uploaded image URL/path.
      * =====================================================
      */
+    @Transactional
+    public UserResponse updateProfile(
+            String username,
+            UserProfileRequest request
+    ) {
+
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "User not found"
+                                )
+                        );
+
+        user.setDisplayName(
+                clean(
+                        request.getDisplayName(),
+                        100
+                )
+        );
+
+        user.setEmail(
+                clean(
+                        request.getEmail(),
+                        120
+                )
+        );
+
+        user.setBio(
+                clean(
+                        request.getBio(),
+                        500
+                )
+        );
+
+        /*
+         * Only update profile picture when value is sent.
+         */
+        if (request.getProfilePicture() != null) {
+
+            user.setProfilePicture(
+                    clean(
+                            request.getProfilePicture(),
+                            500
+                    )
+            );
+        }
+
+        User savedUser =
+                userRepository.save(user);
+
+        return toUserResponse(savedUser);
+    }
+
+
+    /*
+     * =====================================================
+     * CLEAN PROFILE INPUT
+     * =====================================================
+     */
+    private String clean(
+            String value,
+            int maxLength
+    ) {
+
+        if (value == null) {
+            return null;
+        }
+
+        String cleaned =
+                value.trim();
+
+        if (cleaned.isEmpty()) {
+            return null;
+        }
+
+        if (cleaned.length() > maxLength) {
+
+            return cleaned.substring(
+                    0,
+                    maxLength
+            );
+        }
+
+        return cleaned;
+    }
+
+
+    /*
+     * =====================================================
+     * GET ALL USERS
+     *
+     * Excludes:
+     * - Logged-in user
+     * - ADMIN users
+     *
+     * Includes:
+     * - Online status
+     * - Last seen
+     * - Profile details
+     * - Unread message count
+     *
+     * NOTE:
+     * If your frontend now uses /friends,
+     * this method can still remain for existing functionality.
+     * =====================================================
+     */
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers(
             String loggedInUsername
     ) {
@@ -116,13 +239,22 @@ public class UserService {
         List<User> users =
                 userRepository.findAll();
 
-        return users.stream()
+        return users
+                .stream()
 
+                /*
+                 * Do not show logged-in user.
+                 */
                 .filter(user ->
                         !user.getUsername()
-                                .equals(loggedInUsername)
+                                .equalsIgnoreCase(
+                                        loggedInUsername
+                                )
                 )
 
+                /*
+                 * Do not show ADMIN users.
+                 */
                 .filter(user ->
                         !"ADMIN".equalsIgnoreCase(
                                 user.getRole()
@@ -139,18 +271,6 @@ public class UserService {
                                             MessageStatus.DELIVERED
                                     );
 
-                    /*
-                     * IMPORTANT
-                     *
-                     * Use the same profile response method.
-                     *
-                     * This includes:
-                     *
-                     * displayName
-                     * email
-                     * bio
-                     * profilePicture
-                     */
                     UserResponse response =
                             toUserResponse(user);
 
@@ -159,79 +279,122 @@ public class UserService {
                     );
 
                     return response;
-
                 })
 
                 .toList();
     }
+
+
     /*
      * =====================================================
-     * Update User Online Status
-     * Called when WebSocket CONNECT event occurs.
+     * UPDATE USER ONLINE STATUS
+     *
+     * Called when user connects.
+     *
+     * IMPORTANT:
+     * When user becomes online,
+     * we keep the existing lastSeen value.
+     * Frontend should display ONLINE when online=true.
      * =====================================================
      */
     @Transactional
-    public void updateOnlineStatus(String username, boolean online) {
+    public void updateOnlineStatus(
+            String username,
+            boolean online
+    ) {
 
-        User user = userRepository.findByUsername(username)
-
-                .orElseThrow(() ->
-                        new UserNotFoundException("User not found"));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "User not found"
+                                )
+                        );
 
         user.setOnline(online);
 
         userRepository.save(user);
 
-        System.out.println(username + " is ONLINE");
+        System.out.println(
+                username +
+                " is " +
+                (online ? "ONLINE" : "OFFLINE")
+        );
     }
+
 
     /*
      * =====================================================
-     * Update User Offline Status
-     * Called when WebSocket DISCONNECT event occurs.
-     * Also stores Last Seen time.
+     * UPDATE USER OFFLINE STATUS
+     *
+     * Called when user disconnects.
+     *
+     * Saves:
+     * - online = false
+     * - lastSeen = current time
      * =====================================================
      */
     @Transactional
-    public void updateOfflineStatus(String username) {
+    public void updateOfflineStatus(
+            String username
+    ) {
 
-        User user = userRepository.findByUsername(username)
-
-                .orElseThrow(() ->
-                        new UserNotFoundException("User not found"));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() ->
+                                new UserNotFoundException(
+                                        "User not found"
+                                )
+                        );
 
         user.setOnline(false);
 
-        user.setLastSeen(LocalDateTime.now().toString());
+        user.setLastSeen(
+                LocalDateTime.now().toString()
+        );
 
         userRepository.save(user);
 
-        System.out.println(username + " is OFFLINE");
+        System.out.println(
+                username +
+                " is OFFLINE"
+        );
     }
+
 
     /*
      * =====================================================
-     * Check Whether Username Already Exists
-     * Used during registration.
+     * CHECK USER EXISTS
      * =====================================================
      */
-    public boolean userExists(String username) {
+    @Transactional(readOnly = true)
+    public boolean userExists(
+            String username
+    ) {
 
-        return userRepository.existsByUsername(username);
+        return userRepository
+                .existsByUsername(username);
     }
+
 
     /*
      * =====================================================
-     * Delete User By Username
-     * Throws exception if user does not exist.
+     * DELETE USER ACCOUNT
      * =====================================================
      */
-    public boolean removeUser(String username) {
+    @Transactional
+    public boolean removeUser(
+            String username
+    ) {
 
         if (!userRepository.existsByUsername(username)) {
 
             throw new UserNotFoundException(
-                    "User '" + username + "' not found."
+                    "User '" +
+                    username +
+                    "' not found."
             );
         }
 
@@ -240,4 +403,142 @@ public class UserService {
         return true;
     }
 
+
+    /*
+     * =====================================================
+     * SEARCH USERS
+     *
+     * Used by:
+     * GET /user/search/{username}
+     *
+     * Features:
+     *
+     * - Search by username
+     * - Case insensitive
+     * - Excludes logged-in user
+     * - Excludes ADMIN
+     * - Returns profile details
+     * - Returns online status
+     * - Returns last seen
+     *
+     * Used before sending friend request.
+     * =====================================================
+     */
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsers(
+            String searchText,
+            String loggedInUsername
+    ) {
+
+        if (searchText == null ||
+                searchText.trim().isEmpty()) {
+
+            return List.of();
+        }
+
+        return userRepository
+                .findByUsernameContainingIgnoreCase(
+                        searchText.trim()
+                )
+                .stream()
+
+                /*
+                 * Do not show current logged-in user.
+                 */
+                .filter(user ->
+                        !user.getUsername()
+                                .equalsIgnoreCase(
+                                        loggedInUsername
+                                )
+                )
+
+                /*
+                 * Do not show admin accounts.
+                 */
+                .filter(user ->
+                        !"ADMIN".equalsIgnoreCase(
+                                user.getRole()
+                        )
+                )
+
+                .map(this::toUserResponse)
+
+                .toList();
+    }
+
+
+    /*
+     * =====================================================
+     * COMMON USER RESPONSE MAPPER
+     *
+     * IMPORTANT:
+     *
+     * Every API response now consistently contains:
+     *
+     * id
+     * username
+     * role
+     * online
+     * lastSeen
+     * unreadCount
+     * displayName
+     * email
+     * bio
+     * profilePicture
+     *
+     * =====================================================
+     */
+    private UserResponse toUserResponse(
+            User user
+    ) {
+
+        UserResponse response =
+                new UserResponse();
+
+        response.setId(
+                user.getId()
+        );
+
+        response.setUsername(
+                user.getUsername()
+        );
+
+        response.setRole(
+                user.getRole()
+        );
+
+        response.setOnline(
+                user.isOnline()
+        );
+
+        response.setLastSeen(
+                user.getLastSeen()
+        );
+
+        response.setDisplayName(
+                user.getDisplayName()
+        );
+
+        response.setEmail(
+                user.getEmail()
+        );
+
+        response.setBio(
+                user.getBio()
+        );
+
+        response.setProfilePicture(
+                user.getProfilePicture()
+        );
+
+        /*
+         * Default unread count.
+         *
+         * getAllUsers() calculates the actual
+         * unread count separately.
+         */
+        response.setUnreadCount(0);
+
+        return response;
+    }
 }

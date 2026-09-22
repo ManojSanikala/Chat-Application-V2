@@ -11,14 +11,18 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Login - Chat Application</title>
+    <title>Chat Application</title>
 
+
+    <!-- Font Awesome -->
 
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 
+
+    <!-- Google Font -->
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -28,24 +32,28 @@
 
     <style>
 
+        /* =========================================
+           GLOBAL
+        ========================================= */
+
         * {
-            box-sizing:border-box;
+            box-sizing: border-box;
         }
 
 
         body {
 
-            margin:0;
+            margin: 0;
 
-            min-height:100vh;
+            min-height: 100vh;
 
-            display:flex;
+            display: flex;
 
-            align-items:center;
+            align-items: center;
 
-            justify-content:center;
+            justify-content: center;
 
-            font-family:"Inter",sans-serif;
+            font-family: "Inter", sans-serif;
 
             background:
                 linear-gradient(
@@ -54,194 +62,326 @@
                     #1565c0
                 );
 
+            padding: 20px;
+
         }
 
 
-        .login-card {
+        /* =========================================
+           CARD
+        ========================================= */
 
-            width:400px;
+        .auth-card {
 
-            max-width:90%;
+            width: 420px;
 
-            background:white;
+            max-width: 100%;
 
-            padding:40px;
+            background: white;
 
-            border-radius:16px;
+            padding: 40px;
+
+            border-radius: 16px;
 
             box-shadow:
                 0 15px 40px
-                rgba(0,0,0,.25);
+                rgba(0, 0, 0, .25);
 
         }
 
+
+        /* =========================================
+           LOGO
+        ========================================= */
 
         .logo {
 
-            width:70px;
+            width: 70px;
 
-            height:70px;
+            height: 70px;
 
-            margin:auto;
+            margin: auto;
 
-            border-radius:50%;
+            border-radius: 50%;
 
-            display:flex;
+            display: flex;
 
-            align-items:center;
+            align-items: center;
 
-            justify-content:center;
+            justify-content: center;
 
-            background:#2196f3;
+            background: #2196f3;
 
-            color:white;
+            color: white;
 
-            font-size:30px;
+            font-size: 30px;
 
         }
 
 
+        /* =========================================
+           HEADINGS
+        ========================================= */
+
         h1 {
 
-            text-align:center;
+            text-align: center;
 
-            margin:20px 0 5px;
+            margin: 20px 0 5px;
 
-            color:#222;
+            color: #222;
+
+            font-size: 25px;
 
         }
 
 
         .subtitle {
 
-            text-align:center;
+            text-align: center;
 
-            color:#777;
+            color: #777;
 
-            font-size:14px;
+            font-size: 14px;
 
-            margin-bottom:30px;
+            margin-bottom: 30px;
 
         }
 
 
+        /* =========================================
+           INPUT
+        ========================================= */
+
         .input-group {
 
-            margin-bottom:18px;
+            margin-bottom: 18px;
 
         }
 
 
         .input-group label {
 
-            display:block;
+            display: block;
 
-            margin-bottom:7px;
+            margin-bottom: 7px;
 
-            font-size:13px;
+            font-size: 13px;
 
-            font-weight:600;
+            font-weight: 600;
 
-            color:#444;
+            color: #444;
 
         }
 
 
         .input-box {
 
-            display:flex;
+            display: flex;
 
-            align-items:center;
+            align-items: center;
 
-            border:1px solid #ddd;
+            border: 1px solid #ddd;
 
-            border-radius:9px;
+            border-radius: 9px;
 
-            padding:0 12px;
+            padding: 0 12px;
+
+            transition: 0.2s;
+
+        }
+
+
+        .input-box:focus-within {
+
+            border-color: #2196f3;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(33, 150, 243, 0.12);
 
         }
 
 
         .input-box i {
 
-            color:#777;
+            color: #777;
+
+            width: 20px;
 
         }
 
 
         .input-box input {
 
-            width:100%;
+            width: 100%;
 
-            border:none;
+            border: none;
 
-            outline:none;
+            outline: none;
 
-            padding:13px 10px;
+            padding: 13px 10px;
 
-            font-size:14px;
+            font-size: 14px;
 
-        }
-
-
-        #loginButton {
-
-            width:100%;
-
-            border:none;
-
-            border-radius:9px;
-
-            padding:14px;
-
-            background:#2196f3;
-
-            color:white;
-
-            font-size:15px;
-
-            font-weight:600;
-
-            cursor:pointer;
-
-            margin-top:10px;
+            font-family: inherit;
 
         }
 
 
-        #loginButton:hover {
+        /* =========================================
+           BUTTON
+        ========================================= */
 
-            background:#1976d2;
+        .submit-button {
+
+            width: 100%;
+
+            border: none;
+
+            border-radius: 9px;
+
+            padding: 14px;
+
+            background: #2196f3;
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            margin-top: 5px;
+
+            transition: 0.2s;
 
         }
 
 
-        #loginButton:disabled {
+        .submit-button:hover {
 
-            background:#90caf9;
-
-            cursor:not-allowed;
+            background: #1976d2;
 
         }
 
 
-        #errorMessage {
+        .submit-button:disabled {
 
-            display:none;
+            background: #90caf9;
 
-            margin-top:15px;
+            cursor: not-allowed;
 
-            padding:10px;
+        }
 
-            border-radius:7px;
 
-            background:#ffebee;
+        /* =========================================
+           MESSAGE
+        ========================================= */
 
-            color:#c62828;
+        .message {
 
-            font-size:13px;
+            display: none;
 
-            text-align:center;
+            margin-top: 15px;
+
+            padding: 10px;
+
+            border-radius: 7px;
+
+            font-size: 13px;
+
+            text-align: center;
+
+        }
+
+
+        .error-message {
+
+            background: #ffebee;
+
+            color: #c62828;
+
+        }
+
+
+        .success-message {
+
+            background: #e8f5e9;
+
+            color: #2e7d32;
+
+        }
+
+
+        /* =========================================
+           SWITCH
+        ========================================= */
+
+        .switch-auth {
+
+            text-align: center;
+
+            margin-top: 22px;
+
+            font-size: 14px;
+
+            color: #666;
+
+        }
+
+
+        .switch-auth button {
+
+            border: none;
+
+            background: transparent;
+
+            color: #2196f3;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            font-size: 14px;
+
+            padding: 0;
+
+            margin-left: 4px;
+
+        }
+
+
+        .switch-auth button:hover {
+
+            text-decoration: underline;
+
+        }
+
+
+        /* =========================================
+           HIDDEN
+        ========================================= */
+
+        .hidden {
+
+            display: none !important;
+
+        }
+
+
+        /* =========================================
+           PASSWORD RULE
+        ========================================= */
+
+        .password-note {
+
+            color: #888;
+
+            font-size: 11px;
+
+            margin-top: 5px;
 
         }
 
@@ -253,8 +393,12 @@
 <body>
 
 
-<div class="login-card">
+<div class="auth-card">
 
+
+    <!-- =========================================
+         LOGO
+    ========================================= -->
 
     <div class="logo">
 
@@ -263,20 +407,51 @@
     </div>
 
 
-    <h1>
-        Welcome Back
-    </h1>
+    <!-- =========================================
+         LOGIN TITLE
+    ========================================= -->
 
+    <div id="loginHeader">
 
-    <div class="subtitle">
+        <h1>
+            Welcome Back
+        </h1>
 
-        Sign in to your chat account
+        <div class="subtitle">
+            Sign in to your chat account
+        </div>
 
     </div>
 
 
+    <!-- =========================================
+         SIGNUP TITLE
+    ========================================= -->
+
+    <div
+        id="signupHeader"
+        class="hidden"
+    >
+
+        <h1>
+            Create Account
+        </h1>
+
+        <div class="subtitle">
+            Join and start chatting today
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         LOGIN FORM
+    ========================================= -->
+
     <form id="loginForm">
 
+
+        <!-- USERNAME -->
 
         <div class="input-group">
 
@@ -292,7 +467,7 @@
 
                 <input
                     type="text"
-                    id="username"
+                    id="loginUsername"
                     placeholder="Enter username"
                     required
                 >
@@ -302,6 +477,7 @@
         </div>
 
 
+        <!-- PASSWORD -->
 
         <div class="input-group">
 
@@ -317,7 +493,7 @@
 
                 <input
                     type="password"
-                    id="password"
+                    id="loginPassword"
                     placeholder="Enter password"
                     required
                 >
@@ -327,8 +503,11 @@
         </div>
 
 
+        <!-- LOGIN BUTTON -->
+
         <button
             id="loginButton"
+            class="submit-button"
             type="submit"
         >
 
@@ -341,35 +520,410 @@
         </button>
 
 
-        <div id="errorMessage"></div>
+    </form>
+
+
+    <!-- =========================================
+         SIGNUP FORM
+    ========================================= -->
+
+    <form
+        id="signupForm"
+        class="hidden"
+    >
+
+
+        <!-- USERNAME -->
+
+        <div class="input-group">
+
+            <label>
+                Username
+            </label>
+
+
+            <div class="input-box">
+
+                <i class="fa-solid fa-user"></i>
+
+
+                <input
+                    type="text"
+                    id="signupUsername"
+                    placeholder="Choose a username"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- PASSWORD -->
+
+        <div class="input-group">
+
+            <label>
+                Password
+            </label>
+
+
+            <div class="input-box">
+
+                <i class="fa-solid fa-lock"></i>
+
+
+                <input
+                    type="password"
+                    id="signupPassword"
+                    placeholder="Create a password"
+                    minlength="8"
+                    required
+                >
+
+            </div>
+
+
+            <div class="password-note">
+
+                Password must contain at least 8 characters.
+
+            </div>
+
+        </div>
+
+
+        <!-- CONFIRM PASSWORD -->
+
+        <div class="input-group">
+
+            <label>
+                Confirm Password
+            </label>
+
+
+            <div class="input-box">
+
+                <i class="fa-solid fa-lock"></i>
+
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Confirm your password"
+                    minlength="8"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- SIGNUP BUTTON -->
+
+        <button
+            id="signupButton"
+            class="submit-button"
+            type="submit"
+        >
+
+            <i class="fa-solid fa-user-plus"></i>
+
+            &nbsp;
+
+            Create Account
+
+        </button>
 
 
     </form>
 
 
-</div>
+    <!-- =========================================
+         ERROR MESSAGE
+    ========================================= -->
 
+    <div
+        id="errorMessage"
+        class="message error-message"
+    ></div>
+
+
+    <!-- =========================================
+         SUCCESS MESSAGE
+    ========================================= -->
+
+    <div
+        id="successMessage"
+        class="message success-message"
+    ></div>
+
+
+    <!-- =========================================
+         SWITCH LOGIN / SIGNUP
+    ========================================= -->
+
+    <div class="switch-auth">
+
+
+        <span id="switchText">
+
+            Don't have an account?
+
+        </span>
+
+
+        <button
+            type="button"
+            id="switchButton"
+        >
+
+            Create Account
+
+        </button>
+
+
+    </div>
+
+
+</div>
 
 
 <script>
 
-document
-    .getElementById("loginForm")
-    .addEventListener("submit", async function(event) {
+
+/* =========================================
+   GET ELEMENTS
+========================================= */
+
+const loginForm =
+    document.getElementById(
+        "loginForm"
+    );
+
+
+const signupForm =
+    document.getElementById(
+        "signupForm"
+    );
+
+
+const loginHeader =
+    document.getElementById(
+        "loginHeader"
+    );
+
+
+const signupHeader =
+    document.getElementById(
+        "signupHeader"
+    );
+
+
+const switchText =
+    document.getElementById(
+        "switchText"
+    );
+
+
+const switchButton =
+    document.getElementById(
+        "switchButton"
+    );
+
+
+const errorMessage =
+    document.getElementById(
+        "errorMessage"
+    );
+
+
+const successMessage =
+    document.getElementById(
+        "successMessage"
+    );
+
+
+let signupMode = false;
+
+
+/* =========================================
+   HIDE MESSAGES
+========================================= */
+
+function hideMessages() {
+
+    errorMessage.style.display =
+        "none";
+
+
+    successMessage.style.display =
+        "none";
+
+}
+
+
+/* =========================================
+   SHOW ERROR
+========================================= */
+
+function showError(message) {
+
+    successMessage.style.display =
+        "none";
+
+
+    errorMessage.textContent =
+        message;
+
+
+    errorMessage.style.display =
+        "block";
+
+}
+
+
+/* =========================================
+   SHOW SUCCESS
+========================================= */
+
+function showSuccess(message) {
+
+    errorMessage.style.display =
+        "none";
+
+
+    successMessage.textContent =
+        message;
+
+
+    successMessage.style.display =
+        "block";
+
+}
+
+
+/* =========================================
+   SWITCH MODE
+========================================= */
+
+switchButton.addEventListener(
+    "click",
+    function () {
+
+
+        hideMessages();
+
+
+        signupMode =
+            !signupMode;
+
+
+        if (signupMode) {
+
+
+            /* SIGNUP MODE */
+
+            loginForm.classList.add(
+                "hidden"
+            );
+
+
+            signupForm.classList.remove(
+                "hidden"
+            );
+
+
+            loginHeader.classList.add(
+                "hidden"
+            );
+
+
+            signupHeader.classList.remove(
+                "hidden"
+            );
+
+
+            switchText.textContent =
+                "Already have an account?";
+
+
+            switchButton.textContent =
+                "Sign In";
+
+
+        }
+
+        else {
+
+
+            /* LOGIN MODE */
+
+            signupForm.classList.add(
+                "hidden"
+            );
+
+
+            loginForm.classList.remove(
+                "hidden"
+            );
+
+
+            signupHeader.classList.add(
+                "hidden"
+            );
+
+
+            loginHeader.classList.remove(
+                "hidden"
+            );
+
+
+            switchText.textContent =
+                "Don't have an account?";
+
+
+            switchButton.textContent =
+                "Create Account";
+
+
+        }
+
+
+    }
+);
+
+
+/* =========================================
+   LOGIN
+========================================= */
+
+loginForm.addEventListener(
+    "submit",
+    async function (event) {
+
 
         event.preventDefault();
 
 
+        hideMessages();
+
+
         const username =
             document
-                .getElementById("username")
+                .getElementById(
+                    "loginUsername"
+                )
                 .value
                 .trim();
 
 
         const password =
             document
-                .getElementById("password")
+                .getElementById(
+                    "loginPassword"
+                )
                 .value;
 
 
@@ -377,16 +931,6 @@ document
             document.getElementById(
                 "loginButton"
             );
-
-
-        const errorDiv =
-            document.getElementById(
-                "errorMessage"
-            );
-
-
-        errorDiv.style.display =
-            "none";
 
 
         button.disabled =
@@ -399,16 +943,11 @@ document
 
         try {
 
-            console.log(
-                "Sending login request..."
-            );
-
 
             const response =
                 await fetch(
                     "/auth/login",
                     {
-
                         method: "POST",
 
                         headers: {
@@ -416,121 +955,59 @@ document
                                 "application/json"
                         },
 
-                        body: JSON.stringify({
-
-                            username:
-                                username,
-
-                            password:
-                                password
-
-                        })
-
+                        body:
+                            JSON.stringify(
+                                {
+                                    username: username,
+                                    password: password
+                                }
+                            )
                     }
                 );
 
-
-            console.log(
-                "Login HTTP status:",
-                response.status
-            );
-
-
-            /*
-             * Read response as TEXT first.
-             *
-             * This prevents:
-             * Unexpected end of JSON input
-             */
 
             const responseText =
                 await response.text();
 
 
-            console.log(
-                "Login response:",
-                responseText
-            );
+            let data = {};
 
-
-            /*
-             * Empty response
-             */
 
             if (
-                !responseText ||
-                responseText.trim() === ""
+                responseText &&
+                responseText.trim()
             ) {
 
-                throw new Error(
-                    "Server returned an empty response. HTTP status: "
-                    + response.status
-                );
+                try {
 
-            }
+                    data =
+                        JSON.parse(
+                            responseText
+                        );
 
+                }
 
-            /*
-             * Convert JSON text
-             * into JavaScript object
-             */
+                catch {
 
-            let data;
-
-            try {
-
-                data =
-                    JSON.parse(
-                        responseText
+                    throw new Error(
+                        "Server returned an invalid response."
                     );
 
-            }
-            catch (jsonError) {
-
-                console.error(
-                    "Invalid JSON response:",
-                    responseText
-                );
-
-                throw new Error(
-                    "Server returned an invalid response."
-                );
+                }
 
             }
 
-
-            /*
-             * Login failed
-             */
 
             if (!response.ok) {
 
                 throw new Error(
-
                     data.message ||
                     data.error ||
                     "Invalid username or password"
-
                 );
 
             }
 
-
-            /*
-             * Login successful
-             */
-
-            console.log(
-                "Login successful:",
-                data
-            );
-
-
-            /*
-             * Your LoginResponse contains:
-             *
-             * private String token;
-             */
 
             const token =
                 data.token;
@@ -545,9 +1022,7 @@ document
             }
 
 
-            /*
-             * Store JWT
-             */
+            /* SAVE JWT */
 
             localStorage.setItem(
                 "token",
@@ -555,22 +1030,17 @@ document
             );
 
 
-            console.log(
-                "JWT token stored successfully."
-            );
-
-
-            /*
-             * Open chat application
-             */
+            /* OPEN CHAT */
 
             window.location.replace(
                 "/index.html"
             );
 
+
         }
 
         catch (error) {
+
 
             console.error(
                 "LOGIN ERROR:",
@@ -578,13 +1048,10 @@ document
             );
 
 
-            errorDiv.textContent =
+            showError(
                 error.message ||
-                "Login failed";
-
-
-            errorDiv.style.display =
-                "block";
+                "Login failed"
+            );
 
 
             button.disabled =
@@ -596,7 +1063,261 @@ document
 
         }
 
-    });
+
+    }
+);
+
+
+/* =========================================
+   SIGNUP
+========================================= */
+
+signupForm.addEventListener(
+    "submit",
+    async function (event) {
+
+
+        event.preventDefault();
+
+
+        hideMessages();
+
+
+        const username =
+            document
+                .getElementById(
+                    "signupUsername"
+                )
+                .value
+                .trim();
+
+
+        const password =
+            document
+                .getElementById(
+                    "signupPassword"
+                )
+                .value;
+
+
+        const confirmPassword =
+            document
+                .getElementById(
+                    "confirmPassword"
+                )
+                .value;
+
+
+        const button =
+            document.getElementById(
+                "signupButton"
+            );
+
+
+        /* VALIDATE PASSWORD */
+
+        if (
+            password !==
+            confirmPassword
+        ) {
+
+            showError(
+                "Passwords do not match."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            password.length < 8
+        ) {
+
+            showError(
+                "Password must contain at least 8 characters."
+            );
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+
+
+        try {
+
+
+            /* =====================================
+               CALL EXISTING BACKEND
+               POST /auth/register
+            ===================================== */
+
+            const response =
+                await fetch(
+                    "/auth/register",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    username: username,
+                                    password: password
+                                }
+                            )
+                    }
+                );
+
+
+            const responseText =
+                await response.text();
+
+
+            let data = {};
+
+
+            if (
+                responseText &&
+                responseText.trim()
+            ) {
+
+                try {
+
+                    data =
+                        JSON.parse(
+                            responseText
+                        );
+
+                }
+
+                catch {
+
+                    data = {};
+
+                }
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    "Registration failed. Username may already exist."
+                );
+
+            }
+
+
+            /* SUCCESS */
+
+            showSuccess(
+                "Account created successfully! Please sign in."
+            );
+
+
+            /* CLEAR SIGNUP FORM */
+
+            signupForm.reset();
+
+
+            /* RETURN TO LOGIN */
+
+            setTimeout(
+                function () {
+
+
+                    signupMode =
+                        false;
+
+
+                    signupForm.classList.add(
+                        "hidden"
+                    );
+
+
+                    loginForm.classList.remove(
+                        "hidden"
+                    );
+
+
+                    signupHeader.classList.add(
+                        "hidden"
+                    );
+
+
+                    loginHeader.classList.remove(
+                        "hidden"
+                    );
+
+
+                    switchText.textContent =
+                        "Don't have an account?";
+
+
+                    switchButton.textContent =
+                        "Create Account";
+
+
+                    document
+                        .getElementById(
+                            "loginUsername"
+                        )
+                        .focus();
+
+
+                },
+                1500
+            );
+
+
+        }
+
+        catch (error) {
+
+
+            console.error(
+                "SIGNUP ERROR:",
+                error
+            );
+
+
+            showError(
+                error.message ||
+                "Registration failed"
+            );
+
+        }
+
+        finally {
+
+
+            button.disabled =
+                false;
+
+
+            button.innerHTML =
+                '<i class="fa-solid fa-user-plus"></i> &nbsp; Create Account';
+
+        }
+
+
+    }
+);
+
 
 </script>
 

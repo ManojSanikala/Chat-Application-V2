@@ -10,7 +10,7 @@
  */
 
 const CALL_HISTORY_API =
-    "/api/messages/history";
+    "/call/history";
 
 
 
@@ -71,397 +71,475 @@ document.addEventListener(
 
 
 
-/* ============================================= */
-/* LOAD CALL LOGS */
-/* ============================================= */
+/* =====================================================
+   OPEN CALL LOGS
+===================================================== */
 
-async function loadCallLogs() {
+function openCallLogs() {
 
-
-    showLoading();
-
-
-    try {
-
-
-        console.log(
-            "Loading call history..."
+    const modal =
+        document.getElementById(
+            "callLogsModal"
         );
 
-
-        const response =
-            await fetch(
-                CALL_HISTORY_API
-            );
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-                "Failed to load call history"
-            );
-
-        }
-
-
-        const messages =
-            await response.json();
-
-
-        console.log(
-            "All Messages:",
-            messages
-        );
-
-
-        /*
-         * =====================================
-         * FILTER ONLY CALL MESSAGES
-         * =====================================
-         */
-
-        const calls =
-            messages.filter(
-                message =>
-                    message.messageType
-                        &&
-                    message.messageType
-                        .toUpperCase()
-                        === "CALL"
-            );
-
-
-        console.log(
-            "Call Logs:",
-            calls
-        );
-
-
-        /*
-         * =====================================
-         * SORT NEWEST FIRST
-         * =====================================
-         */
-
-        calls.sort(
-            (a, b) => {
-
-                return b.id - a.id;
-
-            }
-        );
-
-
-        updateSummary(
-            calls
-        );
-
-
-        renderCallLogs(
-            calls
-        );
-
-
-    }
-    catch (
-        error
-    ) {
-
+    if (!modal) {
 
         console.error(
-            "Error loading calls:",
-            error
+            "Call logs modal not found"
         );
 
-
-        hideLoading();
-
-
-        showError();
-
-
+        return;
     }
+
+    modal.style.display =
+        "flex";
+
+    loadCallLogs();
 
 }
 
 
+/* =====================================================
+   LOAD CALL LOGS
 
-/* ============================================= */
-/* RENDER CALL LOGS */
-/* ============================================= */
+   Backend endpoint:
+
+   GET /call/history
+===================================================== */
+
+function loadCallLogs() {
+
+    const container =
+        document.getElementById(
+            "callLogsContent"
+        );
+
+    if (!container) {
+
+        console.error(
+            "callLogsContent not found"
+        );
+
+        return;
+    }
+
+
+    container.innerHTML = `
+
+        <div
+            style="
+                text-align:center;
+                padding:30px;
+                color:#888;
+            "
+        >
+
+            Loading call history...
+
+        </div>
+
+    `;
+
+
+    const token =
+        localStorage.getItem(
+            "token"
+        );
+
+
+    fetch(
+        "/call/history",
+        {
+
+            method:
+                "GET",
+
+            headers:
+                {
+
+                    "Authorization":
+                        "Bearer " + token,
+
+                    "Content-Type":
+                        "application/json"
+
+                }
+
+        }
+    )
+
+    .then(
+        async response => {
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                console.error(
+                    "Call history API error:",
+                    response.status,
+                    errorText
+                );
+
+                throw new Error(
+                    "Failed to load call history"
+                );
+
+            }
+
+
+            return response.json();
+
+        }
+    )
+
+    .then(
+        data => {
+
+            console.log(
+                "CALL HISTORY RECEIVED:",
+                data
+            );
+
+
+            renderCallLogs(
+                Array.isArray(data)
+                    ? data
+                    : []
+            );
+
+        }
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                "Call log error:",
+                error
+            );
+
+
+            container.innerHTML = `
+
+                <div
+                    style="
+                        text-align:center;
+                        padding:30px;
+                        color:#f44336;
+                    "
+                >
+
+                    Unable to load call history
+
+                </div>
+
+            `;
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   RENDER CALL LOGS
+
+   Backend MessageResponse fields:
+
+   sender
+   receiver
+   timestamp
+   callType
+   callDirection
+   callStatus
+   callDuration
+===================================================== */
 
 function renderCallLogs(
-    calls
+    callLogs
 ) {
 
-
-    hideLoading();
-
-
-    callList.innerHTML =
-        "";
+    const container =
+        document.getElementById(
+            "callLogsContent"
+        );
 
 
-    if (
-        !calls
-        ||
-        calls.length === 0
-    ) {
-
-
-        emptyState.style.display =
-            "block";
-
+    if (!container) {
 
         return;
 
     }
 
 
-    emptyState.style.display =
-        "none";
+    if (
+        !callLogs ||
+        callLogs.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div
+                style="
+                    text-align:center;
+                    padding:30px;
+                    color:#888;
+                "
+            >
+
+                <i
+                    class="
+                        fa-solid
+                        fa-phone-slash
+                    "
+                    style="
+                        font-size:35px;
+                        margin-bottom:10px;
+                    "
+                ></i>
+
+                <div>
+
+                    No call history found
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
 
 
-    calls.forEach(
+    container.innerHTML =
+        "";
+
+
+    callLogs.forEach(
         call => {
 
 
-            const callItem =
+            const item =
                 document.createElement(
                     "div"
                 );
 
 
-            callItem.className =
-                "call-item";
+            item.className =
+                "call-log-item";
 
 
-            /*
-             * =================================
-             * CALL TYPE
-             * =================================
-             */
+            /* =============================================
+               CALL TYPE
+            ============================================= */
 
-            const callType =
-                call.callType
-                ||
-                "VOICE";
+            const isVideo =
+
+                call.callType ===
+                "VIDEO";
 
 
-            let callIcon =
-                "📞";
+            const icon =
+
+                isVideo
+
+                    ? "fa-video"
+
+                    : "fa-phone";
+
+
+            /* =============================================
+               FIND OTHER USER
+
+               loggedInUser already exists
+               in your users.js
+            ============================================= */
+
+            let otherUser =
+                "Unknown User";
 
 
             if (
-                callType
-                    .toUpperCase()
-                    === "VIDEO"
+                typeof loggedInUser !==
+                "undefined"
             ) {
 
-                callIcon =
-                    "📹";
+                if (
+                    call.sender ===
+                    loggedInUser
+                ) {
+
+                    otherUser =
+                        call.receiver;
+
+                }
+
+                else {
+
+                    otherUser =
+                        call.sender;
+
+                }
+
+            }
+
+            else {
+
+                otherUser =
+                    call.receiver ||
+                    call.sender ||
+                    "Unknown User";
 
             }
 
 
+            /* =============================================
+               CALL STATUS
+            ============================================= */
 
-            /*
-             * =================================
-             * CALL STATUS
-             * =================================
-             */
-
-            const callStatus =
-                call.callStatus
-                ||
+            const status =
+                call.callStatus ||
                 "COMPLETED";
 
 
-            const statusClass =
-                callStatus
-                    .toLowerCase();
+            /* =============================================
+               CALL DIRECTION
+            ============================================= */
 
-
-
-            /*
-             * =================================
-             * CALL DIRECTION
-             * =================================
-             */
-
-            const callDirection =
-                call.callDirection
-                ||
-                "OUTGOING";
-
-
-            let directionText =
+            const direction =
+                call.callDirection ||
                 "";
 
 
-            if (
-                callDirection
-                    .toUpperCase()
-                    === "INCOMING"
-            ) {
-
-                directionText =
-                    "↙ Incoming";
-
-            }
-            else {
-
-                directionText =
-                    "↗ Outgoing";
-
-            }
-
-
-
-            /*
-             * =================================
-             * DURATION
-             * =================================
-             */
+            /* =============================================
+               CALL DURATION
+            ============================================= */
 
             const duration =
-                formatDuration(
+                formatCallDuration(
                     call.callDuration
                 );
 
 
-
-            /*
-             * =================================
-             * TIME
-             * =================================
-             */
+            /* =============================================
+               CALL TIME
+            ============================================= */
 
             const callTime =
-                formatTime(
+                formatCallTime(
                     call.timestamp
                 );
 
 
+            /* =============================================
+               STATUS TEXT
+            ============================================= */
 
-            /*
-             * =================================
-             * MISSED CLASS
-             * =================================
-             */
-
-            let iconClass =
-                "call-icon";
+            let statusText =
+                status;
 
 
             if (
-                callStatus
-                    .toUpperCase()
-                    === "MISSED"
+                direction ===
+                "OUTGOING"
             ) {
 
-                iconClass +=
-                    " missed";
+                statusText =
+                    "Outgoing • " +
+                    status;
+
+            }
+
+            else if (
+                direction ===
+                "INCOMING"
+            ) {
+
+                statusText =
+                    "Incoming • " +
+                    status;
 
             }
 
 
+            /* =============================================
+               CREATE UI
+            ============================================= */
 
-            /*
-             * =================================
-             * HTML
-             * =================================
-             */
-
-            callItem.innerHTML =
-                `
+            item.innerHTML = `
 
                 <div
-                    class="${iconClass}"
+                    class="call-log-left"
                 >
 
-                    ${callIcon}
+                    <div
+                        class="call-log-icon"
+                    >
+
+                        <i
+                            class="
+                                fa-solid
+                                ${icon}
+                            "
+                        ></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div
+                            class="
+                                call-log-name
+                            "
+                        >
+
+                            ${escapeCallLogText(
+                                otherUser
+                            )}
+
+                        </div>
+
+
+                        <div
+                            class="
+                                call-log-info
+                            "
+                        >
+
+                            ${statusText}
+
+                            ${
+                                duration
+                                    ? " • " +
+                                      duration
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
                 <div
-                    class="call-details"
-                >
-
-
-                    <div
-                        class="call-name"
-                    >
-
-                        ${escapeHtml(
-                            call.sender
-                            ||
-                            "Unknown"
-                        )}
-
-                    </div>
-
-
-                    <div
-                        class="call-info"
-                    >
-
-
-                        <span>
-
-                            ${directionText}
-
-                        </span>
-
-
-                        <span>
-
-                            ${callType}
-
-                        </span>
-
-
-                        <span>
-
-                            ${duration}
-
-                        </span>
-
-
-                    </div>
-
-
-                    <div
-                        class="
-                            call-status
-                            ${statusClass}
-                        "
-                    >
-
-                        ${callStatus}
-
-                    </div>
-
-
-                </div>
-
-
-                <div
-                    class="call-time"
+                    class="call-log-right"
                 >
 
                     ${callTime}
 
                 </div>
 
-                `;
+            `;
 
 
-            callList.appendChild(
-                callItem
+            container.appendChild(
+                item
             );
 
 
@@ -471,7 +549,141 @@ function renderCallLogs(
 }
 
 
+/* =====================================================
+   FORMAT CALL DURATION
+===================================================== */
 
+function formatCallDuration(
+    seconds
+) {
+
+    if (
+        seconds === null ||
+        seconds === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    seconds =
+        Number(seconds);
+
+
+    if (
+        isNaN(seconds) ||
+        seconds <= 0
+    ) {
+
+        return "";
+
+    }
+
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+
+    const remainingSeconds =
+        seconds % 60;
+
+
+    return (
+
+        "Duration: " +
+
+        String(minutes)
+            .padStart(
+                2,
+                "0"
+            )
+
+        +
+
+        ":" +
+
+        String(remainingSeconds)
+            .padStart(
+                2,
+                "0"
+            )
+
+    );
+
+}
+
+
+/* =====================================================
+   FORMAT CALL TIME
+===================================================== */
+
+function formatCallTime(
+    dateValue
+) {
+
+    if (!dateValue) {
+
+        return "";
+
+    }
+
+
+    const date =
+        new Date(
+            dateValue
+        );
+
+
+    if (
+        isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return dateValue;
+
+    }
+
+
+    return date.toLocaleString();
+
+}
+
+
+/* =====================================================
+   ESCAPE CALL LOG TEXT
+===================================================== */
+
+function escapeCallLogText(
+    value
+) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        String(value);
+
+
+    return div.innerHTML;
+
+}
 /* ============================================= */
 /* UPDATE SUMMARY */
 /* ============================================= */
@@ -480,6 +692,12 @@ function updateSummary(
     calls
 ) {
 
+    const currentUser =
+        typeof loggedInUser !==
+        "undefined"
+            ? loggedInUser
+            : null;
+
 
     const total =
         calls.length;
@@ -487,27 +705,30 @@ function updateSummary(
 
     const incoming =
         calls.filter(
-            call =>
+            call => {
 
-                call.callDirection
-                    &&
-                call.callDirection
-                    .toUpperCase()
-                    === "INCOMING"
+                return (
+                    currentUser &&
+                    call.receiver ===
+                    currentUser
+                );
+
+            }
         ).length;
 
 
     const outgoing =
         calls.filter(
-            call =>
+            call => {
 
-                !call.callDirection
-                ||
-                call.callDirection
-                    .toUpperCase()
-                    === "OUTGOING"
+                return (
+                    currentUser &&
+                    call.sender ===
+                    currentUser
+                );
+
+            }
         ).length;
-
 
 
     totalCalls.textContent =
@@ -522,9 +743,6 @@ function updateSummary(
         outgoing;
 
 }
-
-
-
 /* ============================================= */
 /* FORMAT DURATION */
 /* ============================================= */

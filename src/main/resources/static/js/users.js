@@ -654,6 +654,9 @@ function selectUser(username) {
 
     currentChatUser =
         username;
+        loadChatUserPresence(
+    username
+);
 	 // Show call buttons only after selecting user
     document.getElementById("voiceCallButton").style.display = "flex";
 
@@ -764,6 +767,381 @@ function selectUser(username) {
 
 }
 /* =====================================================
+   LOAD CHAT USER PRESENCE
+
+   Shows:
+
+   🟢 Online
+
+   or
+
+   Last seen: date and time
+===================================================== */
+
+function loadChatUserPresence(
+    username
+) {
+
+    if (!username) {
+
+        return;
+
+    }
+
+
+    const presenceElement =
+        document.getElementById(
+            "chatUserPresence"
+        );
+
+
+    if (!presenceElement) {
+
+        return;
+
+    }
+
+
+    presenceElement.innerHTML =
+        "Loading status...";
+
+
+    const token =
+        localStorage.getItem(
+            "token"
+        );
+
+
+    fetch(
+        "/user/profile/" +
+        encodeURIComponent(
+            username
+        ),
+        {
+
+            method:
+                "GET",
+
+            headers:
+                {
+
+                    "Authorization":
+                        "Bearer " + token
+
+                }
+
+        }
+    )
+
+    .then(
+        response => {
+
+            if (
+                !response.ok
+            ) {
+
+                throw new Error(
+                    "Unable to load user status"
+                );
+
+            }
+
+
+            return response.json();
+
+        }
+    )
+
+    .then(
+        user => {
+
+
+            /* =========================================
+               Make sure user is still selected.
+
+               Prevents wrong status when clicking
+               users quickly.
+            ========================================= */
+
+            if (
+                typeof currentChatUser !==
+                "undefined"
+                &&
+                currentChatUser !==
+                username
+            ) {
+
+                return;
+
+            }
+
+
+            updateChatUserPresence(
+                user
+            );
+
+        }
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                "Presence load error:",
+                error
+            );
+
+
+            if (
+                typeof currentChatUser !==
+                "undefined"
+                &&
+                currentChatUser ===
+                username
+            ) {
+
+                presenceElement.innerHTML =
+                    "";
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   UPDATE CHAT USER PRESENCE
+===================================================== */
+
+function updateChatUserPresence(
+    user
+) {
+
+    const presenceElement =
+        document.getElementById(
+            "chatUserPresence"
+        );
+
+
+    if (!presenceElement) {
+
+        return;
+
+    }
+
+
+    if (
+        !user
+    ) {
+
+        presenceElement.innerHTML =
+            "";
+
+        return;
+
+    }
+
+
+    /* =============================================
+       USER ONLINE
+    ============================================= */
+
+    if (
+        user.online === true
+    ) {
+
+        presenceElement.innerHTML = `
+
+            <span
+                style="
+                    color:#1fa855;
+                    font-weight:500;
+                "
+            >
+
+                ● Online
+
+            </span>
+
+        `;
+
+        return;
+
+    }
+
+
+    /* =============================================
+       USER OFFLINE WITH LAST SEEN
+    ============================================= */
+
+    if (
+        user.lastSeen
+    ) {
+
+        const formattedLastSeen =
+            formatLastSeen(
+                user.lastSeen
+            );
+
+
+        presenceElement.innerHTML = `
+
+            <span
+                style="
+                    color:#777;
+                "
+            >
+
+                Last seen ${formattedLastSeen}
+
+            </span>
+
+        `;
+
+        return;
+
+    }
+
+
+    /* =============================================
+       USER OFFLINE
+    ============================================= */
+
+    presenceElement.innerHTML = `
+
+        <span
+            style="
+                color:#777;
+            "
+        >
+
+            Offline
+
+        </span>
+
+    `;
+
+}
+
+
+/* =====================================================
+   FORMAT LAST SEEN
+===================================================== */
+
+function formatLastSeen(
+    lastSeen
+) {
+
+    if (!lastSeen) {
+
+        return "";
+
+    }
+
+
+    const date =
+        new Date(
+            lastSeen
+        );
+
+
+    if (
+        isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return lastSeen;
+
+    }
+
+
+    const now =
+        new Date();
+
+
+    const today =
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+
+    const lastSeenDay =
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        );
+
+
+    const time =
+        date.toLocaleTimeString(
+            [],
+            {
+
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit"
+
+            }
+        );
+
+
+    /* TODAY */
+
+    if (
+        lastSeenDay.getTime() ===
+        today.getTime()
+    ) {
+
+        return (
+            "today at " +
+            time
+        );
+
+    }
+
+
+    /* YESTERDAY */
+
+    const yesterday =
+        new Date(today);
+
+
+    yesterday.setDate(
+        today.getDate() - 1
+    );
+
+
+    if (
+        lastSeenDay.getTime() ===
+        yesterday.getTime()
+    ) {
+
+        return (
+            "yesterday at " +
+            time
+        );
+
+    }
+
+
+    /* OLDER */
+
+    return (
+        date.toLocaleDateString() +
+        " at " +
+        time
+    );
+
+}
+/* =====================================================
    CLEAR CURRENT CHAT
 ===================================================== */
 
@@ -831,3 +1209,74 @@ document.addEventListener(
 
     }
 );
+
+/* =====================================================
+   REFRESH ONLINE / LAST SEEN STATUS
+===================================================== */
+
+setInterval(
+    function() {
+
+        if (
+            typeof loadUsers ===
+            "function"
+        ) {
+
+            loadUsers();
+
+        }
+
+    },
+    10000
+);
+
+/* =====================================================
+   HANDLE LIVE PRESENCE UPDATE
+
+   Called from WebSocket presence event
+===================================================== */
+
+function handleChatPresenceUpdate(
+    presence
+) {
+
+    if (
+        !presence
+        ||
+        !presence.username
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        typeof currentChatUser ===
+        "undefined"
+        ||
+        currentChatUser !==
+        presence.username
+    ) {
+
+        return;
+
+    }
+
+
+    updateChatUserPresence(
+        {
+
+            username:
+                presence.username,
+
+            online:
+                presence.online === true,
+
+            lastSeen:
+                presence.lastSeen
+
+        }
+    );
+
+}
